@@ -8,6 +8,12 @@
       <router-link to="/ai-evolution" class="menu-item" :class="{ active: $route.path === '/ai-evolution' }">
         AI 发展
       </router-link>
+      <router-link to="/agent" class="menu-item" :class="{ active: $route.path === '/agent' }">
+        Agent
+      </router-link>
+      <router-link to="/harness" class="menu-item" :class="{ active: $route.path === '/harness' }">
+        Harness
+      </router-link>
     </div>
   </nav>
 </template>

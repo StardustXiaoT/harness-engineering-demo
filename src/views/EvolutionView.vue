@@ -1,248 +1,420 @@
 <template>
   <div class="evolution-page">
+    <!-- 标题 -->
     <div class="page-header">
       <h1 class="page-title">LLM 发展之路</h1>
       <p class="page-subtitle">从 Prompt Engineering → Context Engineering → Harness Engineering</p>
     </div>
 
-    <div class="timeline-progress">
-      <div class="progress-line">
-        <div class="progress-fill"></div>
+    <!-- 模型硬伤背景提示 -->
+    <div class="background-note">
+      <span class="note-icon">💡</span>
+      <span class="note-text">背景：理解 LLM 的局限性（幻觉、上下文限制、缺乏真实世界感知、无自我纠错）是构建可靠 AI 系统的前提</span>
+    </div>
+
+    <!-- Tab 导航 -->
+    <div class="tab-navigation">
+      <button
+        v-for="(tab, index) in tabs"
+        :key="tab.id"
+        class="tab-button"
+        :class="{ active: activeTab === index }"
+        @click="activeTab = index"
+      >
+        <span class="tab-number">0{{ index + 1 }}</span>
+        <span class="tab-name">{{ tab.name }}</span>
+        <span class="tab-question">{{ tab.question }}</span>
+      </button>
+    </div>
+
+    <!-- Tab 内容区域 -->
+    <div class="tab-content">
+      <!-- Prompt Engineering 内容 -->
+      <div v-show="activeTab === 0" class="content-card prompt-content">
+        <div class="card-header">
+          <span class="phase-tag">Phase 1</span>
+          <h3>Prompt Engineering</h3>
+        </div>
+        <p class="card-intro">核心问题：「我该怎么问，模型才能给出好答案？」</p>
+
+        <div class="concept-block">
+          <h4>优化目标</h4>
+          <p>优化单次输入 → 输出的质量</p>
+        </div>
+
+        <div class="technique-list">
+          <span class="technique-tag">角色设定</span>
+          <span class="technique-tag">思维链 (CoT)</span>
+          <span class="technique-tag">少样本示例</span>
+          <span class="technique-tag">结构化输出</span>
+        </div>
+
+        <div class="prompt-flow">
+          <h4>Prompt 构建流程</h4>
+          <div class="flow-diagram">
+            <span class="flow-step">输入</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">角色</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">任务</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">约束</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">输出格式</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">LLM</span>
+          </div>
+        </div>
+
+        <div class="examples-section">
+          <h4>场景案例</h4>
+          <div class="example-card">
+            <div class="example-header">
+              <span class="example-icon">🔍</span>
+              <h5>案例一：代码审查</h5>
+            </div>
+            <div class="example-content">
+              <div class="example-bad">
+                <span class="example-label bad">❌ 模糊Prompt</span>
+                <pre>审查这段代码</pre>
+              </div>
+              <div class="example-good">
+                <span class="example-label good">✓ 优化后</span>
+                <pre>你是一名资深Go工程师。请审查以下代码的：
+1. 潜在Bug和安全风险
+2. 性能问题
+3. 代码规范违反
+4. 单元测试覆盖率
+
+输出格式：
+- 问题列表（严重/警告/建议）
+- 具体行号和修复建议</pre>
+              </div>
+            </div>
+          </div>
+          <div class="example-card">
+            <div class="example-header">
+              <span class="example-icon">📊</span>
+              <h5>案例二：数据分析</h5>
+            </div>
+            <div class="example-content">
+              <div class="example-bad">
+                <span class="example-label bad">❌ 模糊Prompt</span>
+                <pre>分析这些销售数据</pre>
+              </div>
+              <div class="example-good">
+                <span class="example-label good">✓ 优化后</span>
+                <pre>分析附件销售数据，计算：
+1. 月度销售额趋势（折线图数据）
+2. Top 5 产品类别占比
+3. 同比/环比增长率
+
+输出：JSON格式，包含chartData和insights数组</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="conclusion">
+          <span class="conclusion-icon">💡</span>
+          <p><strong>Prompt Engineering 解决的是表达层问题</strong>：如何把人类意图准确翻译成模型能理解的指令。</p>
+        </div>
       </div>
-      <div class="progress-steps">
-        <div class="step active">
-          <span class="step-number">01</span>
-          <span class="step-label">Prompt Engineering</span>
+
+      <!-- Context Engineering 内容 -->
+      <div v-show="activeTab === 1" class="content-card context-content">
+        <div class="card-header">
+          <span class="phase-tag">Phase 2</span>
+          <h3>Context Engineering</h3>
         </div>
-        <div class="step">
-          <span class="step-number">02</span>
-          <span class="step-label">Context Engineering</span>
+        <p class="card-intro">核心问题：「模型在做决策时，应该看到哪些信息？」</p>
+
+        <div class="context-composition">
+          <h4>上下文组成</h4>
+          <div class="context-items">
+            <span class="context-item">系统指令</span>
+            <span class="context-item">用户输入</span>
+            <span class="context-item">对话历史</span>
+            <span class="context-item">检索知识</span>
+            <span class="context-item">工具描述</span>
+            <span class="context-item">工具输出</span>
+          </div>
         </div>
-        <div class="step">
-          <span class="step-number">03</span>
-          <span class="step-label">Harness Engineering</span>
+
+        <div class="challenge-block">
+          <h4>关键挑战</h4>
+          <div class="challenge-items">
+            <div class="challenge-item">
+              <span class="challenge-label">信息太少</span>
+              <span class="arrow">→</span>
+              <span class="result">幻觉</span>
+            </div>
+            <div class="challenge-item">
+              <span class="challenge-label">信息太多</span>
+              <span class="arrow">→</span>
+              <span class="result">注意力稀释</span>
+            </div>
+            <div class="challenge-item">
+              <span class="challenge-label">信息冲突</span>
+              <span class="arrow">→</span>
+              <span class="result">决策混乱</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="context-flow">
+          <h4>上下文构建流程</h4>
+          <div class="flow-diagram context-flow-diagram">
+            <span class="flow-step">用户输入</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">检索知识库</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">工具描述</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">历史对话</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">组合上下文</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">LLM</span>
+          </div>
+        </div>
+
+        <div class="scenarios-section">
+          <h4>场景案例</h4>
+          <div class="scenario-card">
+            <div class="scenario-header">
+              <span class="scenario-icon">💬</span>
+              <h5>场景一：长对话管理</h5>
+            </div>
+            <div class="scenario-content">
+              <p class="scenario-problem">问题：50轮对话后模型开始遗忘早期需求</p>
+              <div class="scenario-solution">
+                <span class="solution-label">✓ 解决方案</span>
+                <pre>策略1: 滑动窗口 - 保留最近N轮对话
+策略2: 摘要压缩 - 每10轮生成会话摘要
+策略3: 关键信息提取 - 提取需求、约束、决策点
+策略4: 外部存储 - 持久化到数据库</pre>
+              </div>
+            </div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-header">
+              <span class="scenario-icon">📚</span>
+              <h5>场景二：RAG 知识问答</h5>
+            </div>
+            <div class="scenario-content">
+              <p class="scenario-problem">问题：模型不知道企业内部规章制度</p>
+              <div class="scenario-solution">
+                <span class="solution-label">✓ 解决方案</span>
+                <pre>1. 用户问"年假怎么计算？"
+2. 检索知识库 → 找到《员工手册》相关段落
+3. 组合上下文：
+   - 系统指令：基于检索内容回答
+   - 检索结果：年假计算规则
+   - 用户问题
+4. LLM 生成答案</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="conclusion">
+          <span class="conclusion-icon">💡</span>
+          <p><strong>Context Engineering 解决的是信息层问题</strong>：确保模型在关键时刻拥有正确的知识，而不是靠猜。</p>
+        </div>
+      </div>
+
+      <!-- Harness Engineering 内容 -->
+      <div v-show="activeTab === 2" class="content-card harness-content">
+        <div class="card-header">
+          <span class="phase-tag phase-3">Phase 3</span>
+          <h3>Harness Engineering</h3>
+        </div>
+        <p class="card-intro">由 OpenAI 首次概念提出 · <a href="https://openai.com/index/harness-engineering/" target="_blank" class="link">查看原文 →</a></p>
+
+        <div class="highlight-box">
+          <p><strong>不是用 AI 写代码，而是构建一个让 AI 自动开发的软件系统</strong></p>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-value">5个月</span>
+            <span class="stat-label">开发周期</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">3名工程师</span>
+            <span class="stat-label">人力投入</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">100万行代码</span>
+            <span class="stat-label">产出代码</span>
+          </div>
+          <div class="stat highlight">
+            <span class="stat-value">0行</span>
+            <span class="stat-label">人工编写</span>
+          </div>
+        </div>
+
+        <div class="practices">
+          <h4>关键实践</h4>
+          <ul>
+            <li><code>AGENTS.md</code> 作为「目录」而非「百科全书」，避免上下文污染</li>
+            <li>每步操作自动运行测试+lint，失败则反馈给 Agent 重试</li>
+            <li>用 Git 作为 Agent 的「原生记忆」，小粒度提交便于追溯</li>
+          </ul>
+        </div>
+
+        <div class="three-elements">
+          <h4>3 个关键要素</h4>
+          <div class="elements-grid">
+            <div class="element">
+              <div class="element-icon">🛠️</div>
+              <h5>环境（Environment）</h5>
+              <p>工具、代码结构、文档</p>
+              <span class="element-note">→ 决定 AI 能力上限</span>
+            </div>
+            <div class="element">
+              <div class="element-icon">⛓️</div>
+              <h5>约束（Constraints）</h5>
+              <p>架构规则、lint、依赖限制</p>
+              <span class="element-note">→ 防止 AI 失控</span>
+            </div>
+            <div class="element">
+              <div class="element-icon">🔄</div>
+              <h5>反馈（Feedback）</h5>
+              <p>测试、日志、指标</p>
+              <span class="element-note">→ 形成自动修复闭环</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="workflow">
+          <h4>工作方式</h4>
+          <div class="workflow-steps">
+            <span class="workflow-step">任务</span>
+            <span class="workflow-arrow">→</span>
+            <span class="workflow-step">AI执行</span>
+            <span class="workflow-arrow">→</span>
+            <span class="workflow-step">测试</span>
+            <span class="workflow-arrow">→</span>
+            <span class="workflow-step">反馈</span>
+            <span class="workflow-arrow">→</span>
+            <span class="workflow-step">修复</span>
+            <span class="workflow-arrow">→</span>
+            <span class="workflow-step">循环</span>
+          </div>
+        </div>
+
+        <div class="final-conclusion">
+          <span class="conclusion-icon">🎯</span>
+          <div class="conclusion-text">
+            <h4>核心结论</h4>
+            <ul>
+              <li>代码不再是核心资产，<strong>系统</strong>才是</li>
+              <li>AI 需要「约束 + 反馈」，而不是更强模型</li>
+              <li>软件工程正在变成「系统设计问题」</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="definition-box">
+          <p><strong>最终理解：</strong></p>
+          <blockquote>Harness Engineering = <strong>用工程系统管理 AI，而不是让 AI 辅助工程</strong></blockquote>
         </div>
       </div>
     </div>
 
-    <div class="modules-grid">
-      <!-- 模块一：模型硬伤 -->
-      <div class="module-card model-issues">
-        <div class="card-header">
-          <span class="module-tag">背景</span>
-          <h3>模型硬伤</h3>
-        </div>
-        <p class="card-intro">理解 LLM 的局限性，是构建可靠 AI 系统的前提</p>
-        <div class="issue-list">
-          <div class="issue-item">
-            <div class="issue-icon">🎭</div>
-            <div class="issue-content">
-              <h4>硬伤一：幻觉与事实不可靠</h4>
-              <p>模型会自信地编造不存在的事实/代码/API/文档引用</p>
-            </div>
+    <!-- 三层包含关系可视化 -->
+    <div class="layer-visualization">
+      <h2 class="viz-title">三层包含关系</h2>
+      <p class="viz-subtitle">从内到外：表达层 → 信息层 → 系统层</p>
+
+      <div class="nested-container">
+        <!-- 最外层：Harness Engineering -->
+        <div class="outer-layer harness-layer">
+          <div class="layer-badge">
+            <span class="badge-icon">🛠️</span>
+            <span class="badge-name">Harness Engineering</span>
+            <span class="badge-question">怎么可靠运行？</span>
           </div>
-          <div class="issue-item">
-            <div class="issue-icon">📏</div>
-            <div class="issue-content">
-              <h4>硬伤二：上下文窗口与记忆限制</h4>
-              <p>上下文窗口有限，长任务中会遗忘早期信息；接近上限时提前收尾</p>
-            </div>
+          <div class="layer-tags">
+            <span class="tag">工具编排</span>
+            <span class="tag">安全护栏</span>
+            <span class="tag">反馈循环</span>
+            <span class="tag">可观测性</span>
+            <span class="tag">人机协作</span>
           </div>
-          <div class="issue-item">
-            <div class="issue-icon">🌍</div>
-            <div class="issue-content">
-              <h4>硬伤三：缺乏真实世界感知</h4>
-              <p>模型只能读文本，无法直接操作/观察真实系统；对业务规则无感</p>
+
+          <!-- 中间层：Context Engineering -->
+          <div class="middle-layer context-layer">
+            <div class="layer-badge">
+              <span class="badge-icon">📦</span>
+              <span class="badge-name">Context Engineering</span>
+              <span class="badge-question">模型该看什么？</span>
             </div>
-          </div>
-          <div class="issue-item">
-            <div class="issue-icon">🔄</div>
-            <div class="issue-content">
-              <h4>硬伤四：无自我纠错与目标漂移</h4>
-              <p>模型倾向于合理化自己的错误；长任务中逐渐偏离原始目标</p>
+            <div class="layer-tags">
+              <span class="tag">系统指令</span>
+              <span class="tag">对话历史</span>
+              <span class="tag">检索知识/RAG</span>
+              <span class="tag">工具描述</span>
+              <span class="tag">上下文管理</span>
+            </div>
+
+            <!-- 最内层：Prompt Engineering -->
+            <div class="inner-layer prompt-layer">
+              <div class="layer-badge">
+                <span class="badge-icon">✍️</span>
+                <span class="badge-name">Prompt Engineering</span>
+                <span class="badge-question">该怎么问？</span>
+              </div>
+              <div class="layer-tags">
+                <span class="tag">角色设定</span>
+                <span class="tag">思维链/CoT</span>
+                <span class="tag">少样本示例</span>
+                <span class="tag">输出格式</span>
+                <span class="tag">指令措辞</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 模块二：Prompt Engineering -->
-      <div class="module-card prompt-engineering">
-        <div class="card-header">
-          <span class="module-tag">Phase 1</span>
-          <h3>Prompt Engineering</h3>
+      <div class="relationship-note">
+        <div class="note-item">
+          <span class="note-arrow">→</span>
+          <span class="note-text">Harness 包含 Context（系统层管理信息流）</span>
         </div>
-        <p class="card-intro">核心问题：「我该怎么问，模型才能给出好答案？」</p>
-        <div class="card-content">
-          <div class="concept-block">
-            <h4>优化目标</h4>
-            <p>优化单次输入 → 输出的质量</p>
-          </div>
-          <div class="technique-list">
-            <span class="technique-tag">角色设定</span>
-            <span class="technique-tag">思维链 (CoT)</span>
-            <span class="technique-tag">少样本示例</span>
-            <span class="technique-tag">结构化输出</span>
-          </div>
-          <div class="conclusion">
-            <span class="conclusion-icon">💡</span>
-            <p><strong>Prompt Engineering 解决的是表达层问题</strong>：如何把人类意图准确翻译成模型能理解的指令。</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 模块三：Context Engineering -->
-      <div class="module-card context-engineering">
-        <div class="card-header">
-          <span class="module-tag">Phase 2</span>
-          <h3>Context Engineering</h3>
-        </div>
-        <p class="card-intro">核心问题：「模型在做决策时，应该看到哪些信息？」</p>
-        <div class="card-content">
-          <div class="context-composition">
-            <h4>上下文组成</h4>
-            <div class="context-items">
-              <span class="context-item">系统指令</span>
-              <span class="context-item">用户输入</span>
-              <span class="context-item">对话历史</span>
-              <span class="context-item">检索知识</span>
-              <span class="context-item">工具描述</span>
-              <span class="context-item">工具输出</span>
-            </div>
-          </div>
-          <div class="challenge-block">
-            <h4>关键挑战</h4>
-            <div class="challenge-items">
-              <div class="challenge-item">
-                <span class="challenge-label">信息太少</span>
-                <span class="arrow">→</span>
-                <span class="result">幻觉</span>
-              </div>
-              <div class="challenge-item">
-                <span class="challenge-label">信息太多</span>
-                <span class="arrow">→</span>
-                <span class="result">注意力稀释</span>
-              </div>
-              <div class="challenge-item">
-                <span class="challenge-label">信息冲突</span>
-                <span class="arrow">→</span>
-                <span class="result">决策混乱</span>
-              </div>
-            </div>
-          </div>
-          <div class="conclusion">
-            <span class="conclusion-icon">💡</span>
-            <p><strong>Context Engineering 解决的是信息层问题</strong>：确保模型在关键时刻拥有正确的知识，而不是靠猜。</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 模块四：Harness Engineering -->
-      <div class="module-card harness-engineering">
-        <div class="card-header">
-          <span class="module-tag phase-3">Phase 3</span>
-          <h3>Harness Engineering</h3>
-        </div>
-        <p class="card-intro">由 OpenAI 首次概念提出 · <a href="https://openai.com/index/harness-engineering/" target="_blank" class="link">查看原文 →</a></p>
-        <div class="card-content">
-          <div class="highlight-box">
-            <p><strong>不是用 AI 写代码，而是构建一个让 AI 自动开发的软件系统</strong></p>
-          </div>
-          <div class="stats">
-            <div class="stat">
-              <span class="stat-value">5个月</span>
-              <span class="stat-label">开发周期</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">3名工程师</span>
-              <span class="stat-label">人力投入</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">100万行代码</span>
-              <span class="stat-label">产出代码</span>
-            </div>
-            <div class="stat highlight">
-              <span class="stat-value">0行</span>
-              <span class="stat-label">人工编写</span>
-            </div>
-          </div>
-          <div class="practices">
-            <h4>关键实践</h4>
-            <ul>
-              <li><code>AGENTS.md</code> 作为「目录」而非「百科全书」，避免上下文污染</li>
-              <li>每步操作自动运行测试+lint，失败则反馈给 Agent 重试</li>
-              <li>用 Git 作为 Agent 的「原生记忆」，小粒度提交便于追溯</li>
-            </ul>
-          </div>
-          <div class="three-elements">
-            <h4>3 个关键要素</h4>
-            <div class="elements-grid">
-              <div class="element">
-                <div class="element-icon">🛠️</div>
-                <h5>环境（Environment）</h5>
-                <p>工具、代码结构、文档</p>
-                <span class="element-note">→ 决定 AI 能力上限</span>
-              </div>
-              <div class="element">
-                <div class="element-icon">⛓️</div>
-                <h5>约束（Constraints）</h5>
-                <p>架构规则、lint、依赖限制</p>
-                <span class="element-note">→ 防止 AI 失控</span>
-              </div>
-              <div class="element">
-                <div class="element-icon">🔄</div>
-                <h5>反馈（Feedback）</h5>
-                <p>测试、日志、指标</p>
-                <span class="element-note">→ 形成自动修复闭环</span>
-              </div>
-            </div>
-          </div>
-          <div class="workflow">
-            <h4>工作方式</h4>
-            <div class="workflow-steps">
-              <span class="workflow-step">任务</span>
-              <span class="workflow-arrow">→</span>
-              <span class="workflow-step">AI执行</span>
-              <span class="workflow-arrow">→</span>
-              <span class="workflow-step">测试</span>
-              <span class="workflow-arrow">→</span>
-              <span class="workflow-step">反馈</span>
-              <span class="workflow-arrow">→</span>
-              <span class="workflow-step">修复</span>
-              <span class="workflow-arrow">→</span>
-              <span class="workflow-step">循环</span>
-            </div>
-          </div>
-          <div class="final-conclusion">
-            <span class="conclusion-icon">🎯</span>
-            <div class="conclusion-text">
-              <h4>核心结论</h4>
-              <ul>
-                <li>代码不再是核心资产，<strong>系统</strong>才是</li>
-                <li>AI 需要「约束 + 反馈」，而不是更强模型</li>
-                <li>软件工程正在变成「系统设计问题」</li>
-              </ul>
-            </div>
-          </div>
-          <div class="definition-box">
-            <p><strong>最终理解：</strong></p>
-            <blockquote>Harness Engineering = <strong>用工程系统管理 AI，而不是让 AI 辅助工程</strong></blockquote>
-          </div>
+        <div class="note-item">
+          <span class="note-arrow">→</span>
+          <span class="note-text">Context 包含 Prompt（信息层是表达层的载体）</span>
         </div>
       </div>
     </div>
   </div>
 </template>
 
+<script setup>
+import { ref } from 'vue'
+
+const activeTab = ref(0)
+
+const tabs = [
+  { id: 'prompt', name: 'Prompt Engineering', question: '该怎么问？' },
+  { id: 'context', name: 'Context Engineering', question: '模型该看什么？' },
+  { id: 'harness', name: 'Harness Engineering', question: '怎么可靠运行？' }
+]
+</script>
+
 <style scoped>
 .evolution-page {
   padding: 40px 24px 80px;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 .page-title {
@@ -260,89 +432,131 @@
   color: var(--text-secondary);
 }
 
-.timeline-progress {
-  margin-bottom: 48px;
-  position: relative;
-}
-
-.progress-line {
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  position: relative;
-  margin-bottom: 24px;
-}
-
-.progress-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 33%;
-  background: linear-gradient(90deg, #2563eb, #7c3aed);
-  border-radius: 2px;
-}
-
-.progress-steps {
+/* 背景提示 */
+.background-note {
   display: flex;
-  justify-content: space-between;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  margin-bottom: 32px;
+  border: 1px solid #f59e0b;
 }
 
-.step.active .step-number {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+.note-icon {
+  font-size: 20px;
+}
+
+.note-text {
+  font-size: 14px;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* Tab 导航 */
+.tab-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 220px;
+}
+
+.tab-button:hover {
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.tab-button.active {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+}
+
+.tab-button.active .tab-number {
+  background: #2563eb;
   color: white;
 }
 
-.step-number {
-  width: 40px;
-  height: 40px;
+.tab-number {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 14px;
-  color: #9ca3af;
+  font-size: 12px;
+  color: #6b7280;
+  transition: all 0.3s ease;
 }
 
-.step-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.step.active .step-label {
-  color: #2563eb;
+.tab-name {
+  font-size: 15px;
   font-weight: 600;
+  color: #1f2937;
 }
 
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 32px;
+.tab-question {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: auto;
 }
 
-.module-card {
+.tab-button.active .tab-question {
+  color: #2563eb;
+}
+
+/* Tab 内容 */
+.tab-content {
+  margin-bottom: 48px;
+}
+
+.content-card {
   background: white;
   border-radius: 24px;
   padding: 32px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-header {
-  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.module-tag {
+.phase-tag {
   display: inline-block;
   padding: 4px 12px;
   font-size: 12px;
@@ -350,10 +564,9 @@
   border-radius: 9999px;
   background: #dbeafe;
   color: #1e40af;
-  margin-bottom: 12px;
 }
 
-.module-tag.phase-3 {
+.phase-tag.phase-3 {
   background: linear-gradient(135deg, #eff6ff 0%, #ede9fe 100%);
   color: #7c3aed;
 }
@@ -377,38 +590,7 @@
   text-decoration: underline;
 }
 
-.issue-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.issue-item {
-  display: flex;
-  gap: 16px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 12px;
-  border-left: 4px solid #ef4444;
-}
-
-.issue-icon {
-  font-size: 24px;
-}
-
-.issue-content h4 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
-}
-
-.issue-content p {
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
+/* 通用样式 - 复用原有代码的样式 */
 .concept-block {
   background: #f0f9ff;
   padding: 16px;
@@ -445,6 +627,178 @@
   color: #374151;
 }
 
+.prompt-flow,
+.context-flow {
+  margin-bottom: 24px;
+}
+
+.prompt-flow h4,
+.context-flow h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 12px;
+}
+
+.context-flow h4 {
+  color: #7c3aed;
+}
+
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 16px;
+  background: #f0f9ff;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+}
+
+.context-flow-diagram {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.flow-step {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #0284c7;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0369a1;
+  white-space: nowrap;
+}
+
+.context-flow-diagram .flow-step {
+  border-color: #7c3aed;
+  color: #5b21b6;
+}
+
+.flow-arrow {
+  color: #0284c7;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.context-flow-diagram .flow-arrow {
+  color: #7c3aed;
+}
+
+/* 案例卡片样式 */
+.examples-section h4,
+.scenarios-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 12px;
+}
+
+.scenarios-section h4 {
+  color: #7c3aed;
+}
+
+.example-card,
+.scenario-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.example-header,
+.scenario-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.example-icon,
+.scenario-icon {
+  font-size: 18px;
+}
+
+.example-header h5,
+.scenario-header h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.example-content,
+.scenario-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.example-bad,
+.example-good,
+.scenario-solution {
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.example-bad {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.example-good,
+.scenario-solution {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.example-label,
+.solution-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.example-label.bad {
+  color: #dc2626;
+}
+
+.example-label.good,
+.solution-label {
+  color: #16a34a;
+}
+
+.example-bad pre,
+.example-good pre,
+.scenario-solution pre {
+  font-size: 11px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.example-bad pre {
+  color: #7f1d1d;
+}
+
+.example-good pre,
+.scenario-solution pre {
+  color: #14532d;
+}
+
+.scenario-problem {
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Context Engineering 样式 */
 .context-composition {
   margin-bottom: 24px;
 }
@@ -511,6 +865,7 @@
   border-radius: 6px;
 }
 
+/* Harness Engineering 样式 */
 .highlight-box {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
   padding: 20px;
@@ -760,11 +1115,198 @@
   margin: 0;
 }
 
-@media (max-width: 1024px) {
-  .modules-grid {
-    grid-template-columns: 1fr;
-  }
+/* 三层包含关系可视化 */
+.layer-visualization {
+  padding: 48px 32px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 24px;
+  text-align: center;
+}
 
+.viz-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.viz-subtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 40px;
+}
+
+.nested-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.outer-layer {
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.harness-layer {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 3px solid #1976d2;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.2);
+}
+
+.harness-layer .layer-badge {
+  background: #1976d2;
+  color: white;
+}
+
+.harness-layer .badge-question {
+  background: rgba(255, 255, 255, 0.25);
+  color: #e3f2fd;
+}
+
+.harness-layer .layer-tags {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.harness-layer .tag {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+
+.middle-layer {
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.context-layer {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 3px solid #ef6c00;
+  box-shadow: 0 4px 24px rgba(239, 108, 0, 0.15);
+}
+
+.context-layer .layer-badge {
+  background: #ef6c00;
+  color: white;
+}
+
+.context-layer .badge-question {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff3e0;
+}
+
+.context-layer .layer-tags {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.context-layer .tag {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+.inner-layer {
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.prompt-layer {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 3px solid #388e3c;
+  box-shadow: 0 4px 16px rgba(56, 142, 60, 0.15);
+}
+
+.prompt-layer .layer-badge {
+  background: #388e3c;
+  color: white;
+}
+
+.prompt-layer .badge-question {
+  background: rgba(255, 255, 255, 0.25);
+  color: #e8f5e9;
+}
+
+.prompt-layer .layer-tags {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.prompt-layer .tag {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+
+.layer-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.badge-icon {
+  font-size: 18px;
+}
+
+.badge-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.badge-question {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.layer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 14px;
+  white-space: nowrap;
+}
+
+.relationship-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.note-arrow {
+  color: #64748b;
+  font-size: 18px;
+}
+
+.note-text {
+  font-size: 14px;
+  color: #475569;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
   .elements-grid {
     grid-template-columns: 1fr;
   }
@@ -783,8 +1325,43 @@
     font-size: 16px;
   }
 
-  .module-card {
+  .tab-navigation {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tab-button {
+    min-width: auto;
+    justify-content: flex-start;
+  }
+
+  .content-card {
     padding: 24px;
+  }
+
+  .layer-visualization {
+    padding: 32px 16px;
+  }
+
+  .viz-title {
+    font-size: 24px;
+  }
+
+  .outer-layer,
+  .middle-layer,
+  .inner-layer {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+  }
+
+  .layer-badge {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .badge-question {
+    margin-left: 0;
   }
 }
 </style>
