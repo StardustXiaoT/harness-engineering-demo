@@ -1,15 +1,44 @@
 # Harness Engineering 演示页面
 
-Harness Engineering 的架构演近 - 交互式演示页面
+Harness Engineering 的架构演进 - 交互式演示页面
 
 ## 更新内容
+
+### v1.2.0 (2026-04-23)
+
+#### 新增页面
+
+5. **Claude Code 页面 (/claude-code)**
+   - 讲解 Harness Engineering 概念的完整演示页面
+   - 5 层架构体系：
+
+   | 层级 | 名称 | 说明 |
+   |------|------|------|
+   | Level 1 | Execution | 执行内核 - Agent Loop 核心循环模式 |
+   | Level 2 | Capability | 能力层 - Tool Use 工具调用 + Skills 渐进式知识披露 |
+   | Level 3 | Planning | 规划层 - Todo/Plan 任务追踪 + Task Graph 依赖图 |
+   | Level 4 | Context | 上下文层 - 三层压缩策略 (micro_compact / auto_compact / compact tool) |
+   | Level 5 | Multi-Agent | 多代理与运行时 - Subagents / Background Tasks / Agent Teams / Worktree Isolation |
+
+   - **核心特性**：
+     - Agent Loop 流程图与代码并排展示
+     - JSON 结构展示（多轮调用、Tool Request、Tool Result）
+     - Mermaid 流程图可视化（Task Graph、Context Compression、Worktree Isolation）
+     - Skills 两层架构展示（Layer 1 系统提示 + Layer 2 按需加载）
+     - Subagents 上下文隔离机制详解
+     - Background Tasks 源码展示（4 步工作原理）
+
+#### 技术实现
+- 新增依赖：`highlight.js`（代码高亮）、`mermaid`（流程图渲染）
+- 新增组件：`MermaidChart.vue`（客户端动态渲染 Mermaid 图表）
+- 视图组件：`ClaudeCodeView.vue`（主页面，包含 5 层架构 Tab 导航）
 
 ### v1.1.0 (2025-04-22)
 
 #### 新增页面
 
 1. **首页 (/)**
-   - 标题：Harness Engineering 的架构演近
+   - 标题：Harness Engineering 的架构演进
    - 副标题：From Prompting → Orchestrating Intelligence
    - 7 个分类的词云图展示 AI 发展术语
    - 词云分类包括：Agentic AI、Harness Engineering、Tool & Skills、Execution、Tools、AI UI、Workflow
@@ -68,6 +97,7 @@ npm run dev
 | /ai-evolution | AI 发展 | 三阶段演进：Prompt → Context → Harness |
 | /agent | Agent | 澄清 Agent 概念 vs Agent 框架 |
 | /harness | Harness | 理解 Harness 的组成和作用 |
+| /claude-code | Claude Code | Harness Engineering 5 层架构详解 |
 
 ## 项目结构
 
@@ -77,14 +107,16 @@ harness-demo/
 │   └── icons/                  # 框架图标
 ├── src/
 │   ├── components/
-│   │   └── MenuBar.vue          # 菜单栏组件
+│   │   ├── MenuBar.vue          # 菜单栏组件
+│   │   └── MermaidChart.vue     # Mermaid 流程图渲染组件（客户端动态加载）
 │   ├── router/
 │   │   └── index.js             # 路由配置
 │   ├── views/
 │   │   ├── HomeView.vue         # 首页（词云图）
 │   │   ├── EvolutionView.vue    # AI 发展页面
 │   │   ├── AgentView.vue        # Agent 页面
-│   │   └── HarnessView.vue      # Harness 页面
+│   │   ├── HarnessView.vue      # Harness 页面
+│   │   └── ClaudeCodeView.vue   # Claude Code 页面（5 层架构）
 │   ├── App.vue                  # 根组件
 │   ├── main.js                  # 入口文件
 │   └── style.css                # 全局样式

@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
+    "mermaid": "^11.14.0",
     "vue": "^3.5.32",
     "vue-router": "^4.6.4"
   },

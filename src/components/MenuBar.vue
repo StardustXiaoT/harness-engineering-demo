@@ -14,6 +14,9 @@
       <router-link to="/harness" class="menu-item" :class="{ active: $route.path === '/harness' }">
         Harness
       </router-link>
+      <router-link to="/claude-code" class="menu-item" :class="{ active: $route.path === '/claude-code' }">
+        Claude Code
+      </router-link>
     </div>
   </nav>
 </template>
