@@ -4,6 +4,48 @@ Harness Engineering 的架构演进 - 交互式演示页面
 
 ## 更新内容
 
+### v1.3.0 (2026-04-24)
+
+#### Multi-Agent 模块完善
+
+扩充了 Level 5 Multi-Agent 架构的三个核心模块，内容基于 learn-claude-code 原始文档：
+
+1. **Agent Teams（持久化队友 + 异步邮箱）**
+   - Teammate 生命周期：spawn → WORKING → IDLE → SHUTDOWN
+   - 通信系统架构：
+     - `config.json`：团队名册 + 状态追踪
+     - `inbox/*.jsonl`：每个队友一个追加写入的邮箱
+     - `send()` / `read_inbox()` 机制
+   - 核心代码：`TeammateManager` 和 `MessageBus` 实现
+
+2. **Teams Protocol（请求 - 响应握手协议）**
+   - **Shutdown Protocol**：关闭握手机制（request_id 关联）
+   - **Plan Approval Protocol**：计划审批协议
+   - **共享 FSM 状态机**：pending → approved/rejected
+   - 统一的请求 - 响应模式代码示例
+
+3. **Autonomous Agents（自主认领任务的队友）**
+   - 两个执行阶段：WORK 阶段和 IDLE 阶段
+   - IDLE 轮询机制：5s 间隔轮询 inbox 和任务板
+   - 任务自动认领：扫描 `.tasks/` 寻找未认领任务
+   - 身份重新注入：上下文压缩后重新插入身份块
+   - 核心代码：`_loop()` 和 `_idle_poll()` 实现
+
+4. **Worktree Isolation（任务级目录隔离）**
+   - Control Plane + Execution Plane 架构
+   - 任务-Worktree 绑定机制
+   - 生命周期 4 步骤：创建任务 → 创建 worktree → 执行命令 → 清理
+   - 事件流：`.worktrees/events.jsonl`
+   - 状态恢复：崩溃后从文件重建
+   - 核心代码：`WorktreeManager` 实现
+
+#### 技术实现
+- 新增 Mermaid 流程图：Agent Teams 架构、Autonomous 生命周期、Worktree 架构
+- 新增代码示例高亮：TeammateManager、WorktreeManager、Protocol 处理函数
+- 响应式样式优化：适配移动端的卡片布局
+
+---
+
 ### v1.2.0 (2026-04-23)
 
 #### 新增页面

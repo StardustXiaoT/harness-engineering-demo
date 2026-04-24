@@ -695,15 +695,283 @@
           </div>
 
           <!-- Agent Teams -->
-          <div class="concept-card">
+          <div class="concept-card full-width">
             <div class="concept-header">
               <span class="concept-icon">🤝</span>
               <h4>Agent Teams</h4>
-              <span class="concept-subtitle">JSONL 邮箱</span>
+              <span class="concept-subtitle">持久化队友 + 异步邮箱</span>
             </div>
             <p class="concept-desc">
-              团队成员通过 JSONL 文件通信：发送消息 → 写入对方 inbox → 对方轮询读取。
+              Subagent 是一次性的（spawn → work → summary → die），而 Agent Teams 提供持久化的队友，具有身份和生命周期管理。
             </p>
+
+            <!-- Team Architecture Diagram -->
+            <MermaidChart :diagram="agentTeamsDiagram" />
+
+            <div class="team-lifecycle">
+              <h4 class="subsection-title">🔄 Teammate 生命周期</h4>
+              <div class="lifecycle-flow">
+                <div class="lifecycle-stage">
+                  <span class="stage-badge">spawn</span>
+                  <p>创建队友，启动独立线程运行 agent loop</p>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-stage working">
+                  <span class="stage-badge">WORKING</span>
+                  <p>执行任务，处理 LLM 调用和工具</p>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-stage idle">
+                  <span class="stage-badge">IDLE</span>
+                  <p>等待新消息或任务</p>
+                </div>
+                <div class="lifecycle-arrow">→</div>
+                <div class="lifecycle-stage shutdown">
+                  <span class="stage-badge">SHUTDOWN</span>
+                  <p>优雅退出，清理资源</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="communication-system">
+              <h4 class="subsection-title">📬 通信系统：JSONL Inbox</h4>
+              <div class="comm-grid">
+                <div class="comm-item">
+                  <span class="comm-icon">📁</span>
+                  <div>
+                    <strong>config.json</strong>
+                    <p>团队名册 + 状态追踪</p>
+                    <pre class="small-code">{
+  "members": [
+    {"name": "alice", "role": "coder", "status": "working"},
+    {"name": "bob", "role": "tester", "status": "idle"}
+  ]
+}</pre>
+                  </div>
+                </div>
+                <div class="comm-item">
+                  <span class="comm-icon">📥</span>
+                  <div>
+                    <strong>inbox/*.jsonl</strong>
+                    <p>每个队友一个追加写入了邮箱</p>
+                    <pre class="small-code">alice.jsonl
+bob.jsonl
+lead.jsonl</pre>
+                  </div>
+                </div>
+                <div class="comm-item">
+                  <span class="comm-icon">📤</span>
+                  <div>
+                    <strong>send()</strong>
+                    <p>追加 JSON 行到对方 inbox</p>
+                    <pre class="small-code">{"type": "message", "from": "alice",
+  "content": "...", "timestamp": 123}</pre>
+                  </div>
+                </div>
+                <div class="comm-item">
+                  <span class="comm-icon">📥</span>
+                  <div>
+                    <strong>read_inbox()</strong>
+                    <p>读取并清空 inbox</p>
+                    <pre class="small-code">msgs = read(inbox)
+write(inbox, "")  // drain
+return msgs</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">TeammateManager 核心实现</span>
+                <span class="code-lang">Python</span>
+              </div>
+              <pre><code v-html="highlightedTeammateCode"></code></pre>
+            </div>
+          </div>
+
+          <!-- Teams Protocol -->
+          <div class="concept-card full-width">
+            <div class="concept-header">
+              <span class="concept-icon">📬</span>
+              <h4>Teams Protocol</h4>
+              <span class="concept-subtitle">请求 - 响应握手协议</span>
+            </div>
+            <p class="concept-desc">
+              在 Agent Teams 基础上，队友之间需要结构化协调。Teams Protocol 引入了统一的请求 - 响应模式：一方发送带唯一 ID 的请求，另一方引用该 ID 响应。
+            </p>
+
+            <!-- Protocol Diagrams -->
+            <div class="protocol-diagrams">
+              <div class="protocol-diagram">
+                <h4 class="protocol-diagram-title">关闭协议 (Shutdown Protocol)</h4>
+                <div class="protocol-sequence">
+                  <div class="sequence-row">
+                    <span class="sequence-agent lead">Lead</span>
+                    <span class="sequence-arrow">→</span>
+                    <span class="sequence-msg">shutdown_request {req_id:"abc"}</span>
+                    <span class="sequence-arrow">→</span>
+                    <span class="sequence-agent teammate">Teammate</span>
+                  </div>
+                  <div class="sequence-row">
+                    <span class="sequence-agent lead">Lead</span>
+                    <span class="sequence-arrow">←</span>
+                    <span class="sequence-msg">shutdown_response {req_id:"abc", approve:true}</span>
+                    <span class="sequence-arrow">←</span>
+                    <span class="sequence-agent teammate">Teammate</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="protocol-diagram">
+                <h4 class="protocol-diagram-title">计划审批协议 (Plan Approval Protocol)</h4>
+                <div class="protocol-sequence">
+                  <div class="sequence-row">
+                    <span class="sequence-agent teammate">Teammate</span>
+                    <span class="sequence-arrow">→</span>
+                    <span class="sequence-msg">plan_req {req_id:"xyz", plan:"..."}</span>
+                    <span class="sequence-arrow">→</span>
+                    <span class="sequence-agent lead">Lead</span>
+                  </div>
+                  <div class="sequence-row">
+                    <span class="sequence-agent teammate">Teammate</span>
+                    <span class="sequence-arrow">←</span>
+                    <span class="sequence-msg">plan_resp {req_id:"xyz", approve:true/false}</span>
+                    <span class="sequence-arrow">←</span>
+                    <span class="sequence-agent lead">Lead</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fsm-section">
+              <h4 class="subsection-title">🔄 共享状态机 (FSM)</h4>
+              <div class="fsm-diagram">
+                <div class="fsm-state pending">pending</div>
+                <div class="fsm-transitions">
+                  <div class="fsm-transition">
+                    <span class="transition-label">approve</span>
+                    <span class="transition-arrow">→</span>
+                    <div class="fsm-state approved">approved</div>
+                  </div>
+                  <div class="fsm-transition">
+                    <span class="transition-label">reject</span>
+                    <span class="transition-arrow">→</span>
+                    <div class="fsm-state rejected">rejected</div>
+                  </div>
+                </div>
+              </div>
+              <p class="fsm-note">同一个状态机应用于两种协议：shutdown_requests 和 plan_requests</p>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">请求 - 响应实现</span>
+                <span class="code-lang">Python</span>
+              </div>
+              <pre><code v-html="highlightedProtocolCode"></code></pre>
+            </div>
+          </div>
+
+          <!-- Autonomous Agents -->
+          <div class="concept-card full-width">
+            <div class="concept-header">
+              <span class="concept-icon">🚀</span>
+              <h4>Autonomous Agents</h4>
+              <span class="concept-subtitle">自主认领任务的队友</span>
+            </div>
+            <p class="concept-desc">
+              在 Agent Teams 和 Teams Protocol 基础上，队友之前只能被动等待分配任务。Autonomous Agents 实现真正的自主：队友自己扫描任务板，认领未分配的任务，完成后继续寻找新工作。
+            </p>
+
+            <!-- Autonomous Lifecycle Diagram -->
+            <MermaidChart :diagram="autonomousLifecycleDiagram" />
+
+            <div class="autonomous-phases">
+              <h4 class="subsection-title">🔄 两个执行阶段</h4>
+              <div class="phases-grid">
+                <div class="phase-card work">
+                  <div class="phase-header">
+                    <span class="phase-icon">💻</span>
+                    <strong>WORK 阶段</strong>
+                  </div>
+                  <ul>
+                    <li>执行 LLM 调用和工具</li>
+                    <li>持续循环直到 stop_reason != tool_use</li>
+                    <li>或调用 idle 工具主动进入 IDLE</li>
+                  </ul>
+                </div>
+                <div class="phase-card idle">
+                  <div class="phase-header">
+                    <span class="phase-icon">😴</span>
+                    <strong>IDLE 阶段</strong>
+                  </div>
+                  <ul>
+                    <li>轮询 inbox 是否有新消息（5s 间隔）</li>
+                    <li>扫描 .tasks/ 寻找未认领任务</li>
+                    <li>60s 超时后自动 SHUTDOWN</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="autonomous-features">
+              <h4 class="subsection-title">🔑 核心机制</h4>
+              <div class="features-grid">
+                <div class="feature-item">
+                  <span class="feature-icon">📋</span>
+                  <div>
+                    <strong>任务板扫描</strong>
+                    <p>查找 status=pending、owner 为空、blockedBy 为空的任务</p>
+                    <pre class="small-code">if task.status=="pending" and not task.owner:
+    claim_task(task.id, name)</pre>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">🎭</span>
+                  <div>
+                    <strong>身份重新注入</strong>
+                    <p>上下文压缩后，重新插入身份块防止模型忘记自己是谁</p>
+                    <pre class="small-code">if len(messages) &lt;= 3:
+    messages.insert(0, identity_block)</pre>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">⏱️</span>
+                  <div>
+                    <strong>IDLE 超时</strong>
+                    <p>60 秒无活动自动关闭，避免资源浪费</p>
+                    <pre class="small-code">for _ in range(60 // 5):  # 12 次轮询
+    sleep(5); check_work()</pre>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">📥</span>
+                  <div>
+                    <strong>Inbox 优先</strong>
+                    <p>IDLE 时优先检查 inbox，消息优先级高于自动认领</p>
+                    <pre class="small-code">if inbox: return True  # 立即恢复工作
+if unclaimed: claim()  # 否则认领任务</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">WORK/IDLE 循环实现</span>
+                <span class="code-lang">Python</span>
+              </div>
+              <pre><code v-html="highlightedAutonomousCode"></code></pre>
+            </div>
+
+            <div class="key-insight-box">
+              <span class="insight-icon">💡</span>
+              <div>
+                <strong>核心变化：</strong>
+                从"lead 分配任务"到"队友自己找工作"。10 个未认领任务？队友们会自动认领，无需人工干预。
+              </div>
+            </div>
           </div>
 
           <!-- Worktree Isolation -->
@@ -711,14 +979,113 @@
             <div class="concept-header">
               <span class="concept-icon">🌳</span>
               <h4>Worktree Isolation</h4>
-              <span class="concept-subtitle">并行执行环境</span>
+              <span class="concept-subtitle">任务级目录隔离</span>
             </div>
             <p class="concept-desc">
-              为并行任务创建独立的 git worktree，避免文件系统冲突。
+              多个 Agent 并行执行时会发生文件冲突：Agent A 和 Agent B 同时修改 `config.py`。解决方案：每个任务拥有独立的 git worktree 目录。
             </p>
 
-            <!-- Worktree Isolation Mermaid 流程图 -->
-            <MermaidChart :diagram="worktreeIsolationDiagram" />
+            <!-- Worktree Architecture Diagram -->
+            <MermaidChart :diagram="worktreeArchitectureDiagram" />
+
+            <div class="worktree-binding">
+              <h4 class="subsection-title">🔗 任务 - Worktree 绑定机制</h4>
+              <div class="binding-grid">
+                <div class="binding-side">
+                  <h5>Control Plane (.tasks/)</h5>
+                  <pre class="small-code">{
+  "id": 1,
+  "subject": "Implement auth refactor",
+  "status": "in_progress",
+  "worktree": "auth-refactor"
+}</pre>
+                </div>
+                <div class="binding-arrow">↔</div>
+                <div class="binding-side">
+                  <h5>Execution Plane (.worktrees/)</h5>
+                  <pre class="small-code">auth-refactor/
+  branch: wt/auth-refactor
+  task_id: 1</pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="worktree-lifecycle">
+              <h4 class="subsection-title">🔄 Worktree 生命周期</h4>
+              <div class="lifecycle-steps">
+                <div class="lifecycle-step">
+                  <span class="step-number">1</span>
+                  <div class="step-detail">
+                    <strong>创建任务</strong>
+                    <p>持久化目标到 <code>.tasks/task_N.json</code>，<code>status=pending</code>，<code>worktree=""</code></p>
+                  </div>
+                </div>
+                <div class="lifecycle-step">
+                  <span class="step-number">2</span>
+                  <div class="step-detail">
+                    <strong>创建 Worktree</strong>
+                    <p><code>git worktree add -b wt/&lt;name&gt; .worktrees/&lt;name&gt; HEAD</code>，传递 <code>task_id</code> 自动推进任务状态</p>
+                  </div>
+                </div>
+                <div class="lifecycle-step">
+                  <span class="step-number">3</span>
+                  <div class="step-detail">
+                    <strong>执行命令</strong>
+                    <p>所有命令在 worktree 目录执行（<code>cwd=worktree_path</code>），文件修改隔离</p>
+                  </div>
+                </div>
+                <div class="lifecycle-step">
+                  <span class="step-number">4</span>
+                  <div class="step-detail">
+                    <strong>清理</strong>
+                    <p><code>worktree_keep()</code> 保留目录；<code>worktree_remove(complete_task=true)</code> 删除目录 + 完成任务 + _emit 事件</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="worktree-features">
+              <h4 class="subsection-title">🔑 核心机制</h4>
+              <div class="wt-features-grid">
+                <div class="wt-feature">
+                  <span class="wt-feature-icon">📁</span>
+                  <div>
+                    <strong>目录隔离</strong>
+                    <p>每个 worktree 是独立的 git 分支，文件修改互不影响</p>
+                  </div>
+                </div>
+                <div class="wt-feature">
+                  <span class="wt-feature-icon">📝</span>
+                  <div>
+                    <strong>事件流</strong>
+                    <p>所有生命周期事件记录到 <code>.worktrees/events.jsonl</code></p>
+                  </div>
+                </div>
+                <div class="wt-feature">
+                  <span class="wt-feature-icon">🔧</span>
+                  <div>
+                    <strong>状态恢复</strong>
+                    <p>崩溃后从 <code>.tasks/</code> + <code>.worktrees/index.json</code> 重建状态</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="code-title">WorktreeManager 核心实现</span>
+                <span class="code-lang">Python</span>
+              </div>
+              <pre><code v-html="highlightedWorktreeCode"></code></pre>
+            </div>
+
+            <div class="key-insight-box">
+              <span class="insight-icon">💡</span>
+              <div>
+                <strong>核心变化：</strong>
+                Tasks 管理 <em>做什么</em>，Worktrees 管理 <em>在哪里做</em>。通过 task_id 绑定，实现并行执行零冲突。
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1067,7 +1434,7 @@ def agent_loop(user_input: str) -> str:
                     }]
                 })  # ⑤ 添加结果，继续循环`
 
-const toolUseCode = `# s02: Tool Use - 工具定义与分发
+const toolUseCode = `# Tool Use - 工具定义与分发
 # 核心洞察："循环没有改变，我只是添加了工具"
 
 # 1. 工具定义：声明模型可以调用的能力
@@ -1159,7 +1526,7 @@ TOOL_HANDLERS = {
     "edit_file":  lambda **kw: run_edit(kw["path"], kw["old_text"], kw["new_text"]),
 }
 
-# 4. Agent Loop - 与 s01 完全相同
+# 4. Agent Loop - 与 Execution 层完全相同
 def agent_loop(messages: list):
     while True:
         response = client.messages.create(
@@ -1398,6 +1765,270 @@ const toolResultJson = `{
     }
   ]
 }`
+
+// Agent Teams Diagram
+const agentTeamsDiagram = `
+flowchart TB
+    subgraph Lead[Lead Agent]
+        L1[messages]
+        L2[tools spawn/send/read_inbox]
+    end
+
+    subgraph Team[Team Members]
+        A[alice coder working]
+        B[bob tester idle]
+    end
+
+    subgraph Mailbox[Inbox Files]
+        M1[alice.jsonl]
+        M2[bob.jsonl]
+        M3[lead.jsonl]
+    end
+
+    Lead -->|spawn| Team
+    A -->|send| M1
+    B -->|read_inbox| M2
+
+    style Lead fill:#dbeafe,stroke:#3b82f6
+    style Team fill:#f0fdf4,stroke:#10b981
+    style Mailbox fill:#fef3c7,stroke:#f59e0b
+`
+
+// Teams Protocol Code
+const protocolCode = `# Shutdown Protocol
+shutdown_requests = {}
+
+def handle_shutdown_request(teammate: str) -> str:
+    req_id = str(uuid.uuid4())[:8]
+    shutdown_requests[req_id] = {"target": teammate, "status": "pending"}
+    BUS.send("lead", teammate, "Please shut down gracefully.",
+             "shutdown_request", {"request_id": req_id})
+    return f"Shutdown request {req_id} sent (status: pending)"
+
+# Teammate responds
+if tool_name == "shutdown_response":
+    req_id = args["request_id"]
+    approve = args["approve"]
+    shutdown_requests[req_id]["status"] = "approved" if approve else "rejected"
+    BUS.send(sender, "lead", args.get("reason", ""),
+             "shutdown_response",
+             {"request_id": req_id, "approve": approve})
+
+# Plan Approval follows identical pattern
+plan_requests = {}
+def handle_plan_review(request_id, approve, feedback=""):
+    req = plan_requests[request_id]
+    req["status"] = "approved" if approve else "rejected"
+    BUS.send("lead", req["from"], feedback,
+             "plan_approval_response",
+             {"request_id": request_id, "approve": approve})`
+
+const highlightedProtocolCode = computed(() => {
+  return hljs.highlight(protocolCode, { language: 'python' }).value
+})
+
+// Autonomous Agents Lifecycle Diagram
+const autonomousLifecycleDiagram = `
+flowchart TD
+    Start[spawn] --> WORK[WORK 阶段<br/>执行 LLM + 工具]
+    WORK -->|stop_reason != tool_use 或 idle 调用 | IDLE[IDLE 阶段]
+
+    IDLE -->|poll 5s| CheckInbox{inbox 有消息？}
+    CheckInbox -->|Yes| ResumeWORK[恢复 WORK]
+    CheckInbox -->|No| CheckTasks{有未认领任务？}
+
+    CheckTasks -->|Yes| Claim[认领任务]
+    Claim --> ResumeWORK
+    CheckTasks -->|No| Timeout{60s 超时？}
+    Timeout -->|No| CheckInbox
+    Timeout -->|Yes| Shutdown[SHUTDOWN]
+
+    style WORK fill:#dbeafe,stroke:#3b82f6
+    style IDLE fill:#fef3c7,stroke:#f59e0b
+    style ResumeWORK fill:#d1fae5,stroke:#10b981
+    style Shutdown fill:#fee2e2,stroke:#ef4444
+`
+
+// Autonomous Agents Code
+const autonomousCode = `# WORK/IDLE Loop
+def _loop(self, name, role, prompt):
+    while True:
+        # -- WORK PHASE --
+        messages = [{"role": "user", "content": prompt}]
+        for _ in range(50):
+            response = client.messages.create(...)
+            if response.stop_reason != "tool_use":
+                break
+            # execute tools...
+            if idle_requested:
+                break
+
+        # -- IDLE PHASE --
+        self._set_status(name, "idle")
+        resume = self._idle_poll(name, messages)
+        if not resume:
+            self._set_status(name, "shutdown")
+            return
+        self._set_status(name, "working")
+
+# Idle Polling
+def _idle_poll(self, name, messages):
+    for _ in range(IDLE_TIMEOUT // POLL_INTERVAL):  # 60s / 5s = 12
+        time.sleep(POLL_INTERVAL)
+        inbox = BUS.read_inbox(name)
+        if inbox:
+            messages.append({"role": "user",
+                "content": f"<inbox>{inbox}</inbox>"})
+            return True
+        unclaimed = scan_unclaimed_tasks()
+        if unclaimed:
+            claim_task(unclaimed[0]["id"], name)
+            messages.append({"role": "user",
+                "content": f"<auto-claimed>Task #{unclaimed[0]['id']}: "
+                           f"{unclaimed[0]['subject']}</auto-claimed>"})
+            return True
+    return False  # timeout -> shutdown
+
+# Identity Re-injection after compression
+if len(messages) <= 3:
+    messages.insert(0, {"role": "user",
+        "content": f"<identity>You are '{name}', role: {role}, "
+                   f"team: {team_name}. Continue your work.</identity>"})
+    messages.insert(1, {"role": "assistant",
+        "content": f"I am {name}. Continuing."})`
+
+const highlightedAutonomousCode = computed(() => {
+  return hljs.highlight(autonomousCode, { language: 'python' }).value
+})
+
+// Teammate Code
+const teammateCode = `class TeammateManager:
+    def __init__(self, team_dir: Path):
+        self.dir = team_dir
+        self.dir.mkdir(exist_ok=True)
+        self.config_path = self.dir / "config.json"
+        self.config = self._load_config()
+        self.threads = {}
+
+    def spawn(self, name: str, role: str, prompt: str) -> str:
+        member = {"name": name, "role": role, "status": "working"}
+        self.config["members"].append(member)
+        self._save_config()
+        thread = threading.Thread(
+            target=self._teammate_loop,
+            args=(name, role, prompt), daemon=True)
+        thread.start()
+        return f"Spawned teammate '{name}' (role: {role})"
+
+# MessageBus: append-only JSONL inboxes
+class MessageBus:
+    def send(self, sender, to, content, msg_type="message", extra=None):
+        msg = {"type": msg_type, "from": sender,
+               "content": content, "timestamp": time.time()}
+        if extra:
+            msg.update(extra)
+        with open(self.dir / f"{to}.jsonl", "a") as f:
+            f.write(json.dumps(msg) + "\\n")
+
+    def read_inbox(self, name):
+        path = self.dir / f"{name}.jsonl"
+        if not path.exists(): return "[]"
+        msgs = [json.loads(l) for l in path.read_text().strip().splitlines() if l]
+        path.write_text("")  # drain
+        return json.dumps(msgs, indent=2)`
+
+const highlightedTeammateCode = computed(() => {
+  return hljs.highlight(teammateCode, { language: 'python' }).value
+})
+
+// Worktree Architecture Diagram
+const worktreeArchitectureDiagram = `
+flowchart TB
+    subgraph ControlPlane["Control Plane .tasks/"]
+        T1["task_1.json<br/>status: in_progress<br/>worktree: auth-refactor"]
+        T2["task_2.json<br/>status: pending<br/>worktree: ui-login"]
+    end
+
+    subgraph ExecutionPlane["Execution Plane .worktrees/"]
+        W1["auth-refactor/<br/>branch: wt/auth-refactor<br/>task_id: 1"]
+        W2["ui-login/<br/>branch: wt/ui-login<br/>task_id: 2"]
+        IDX["index.json<br/>events.jsonl"]
+    end
+
+    T1 <-->|bind| W1
+    T2 <-->|bind| W2
+    W1 --> IDX
+    W2 --> IDX
+
+    style ControlPlane fill:#dbeafe,stroke:#3b82f6
+    style ExecutionPlane fill:#f0fdf4,stroke:#10b981
+    style IDX fill:#fef3c7,stroke:#f59e0b
+`
+
+// Worktree Code
+const worktreeCode = `class WorktreeManager:
+    def __init__(self, worktrees_dir: Path, tasks):
+        self.dir = worktrees_dir
+        self.dir.mkdir(exist_ok=True)
+        self.tasks = tasks  # TaskManager instance
+        self.index_path = self.dir / "index.json"
+        self.events_path = self.dir / "events.jsonl"
+        self.index = self._load_index()
+
+    def create(self, name: str, task_id: int = None) -> str:
+        """Create worktree and bind to task"""
+        branch = f"wt/{name}"
+        path = self.dir / name
+        # git worktree add -b <branch> <path> HEAD
+        self._run_git(["worktree", "add", "-b", branch, str(path), "HEAD"])
+
+        # Bind to task (auto-advance status to in_progress)
+        if task_id:
+            self.tasks.bind_worktree(task_id, name)
+
+        # Record in index
+        self.index[name] = {"name": name, "branch": branch,
+                           "path": str(path), "task_id": task_id}
+        self._save_index()
+        self._emit("worktree.create.after", {"name": name, "task_id": task_id})
+        return f"Created worktree '{name}' on branch '{branch}'"
+
+    def remove(self, name: str, force=False, complete_task=False) -> str:
+        """Remove worktree, optionally complete bound task"""
+        wt = self.index.get(name)
+        if not wt:
+            raise ValueError(f"Worktree '{name}' not found")
+
+        self._emit("worktree.remove.before", {"name": name})
+        self._run_git(["worktree", "remove", wt["path"]])
+
+        if complete_task and wt.get("task_id") is not None:
+            self.tasks.update(wt["task_id"], status="completed")
+            self.tasks.unbind_worktree(wt["task_id"])
+            self._emit("task.completed", {"task_id": wt["task_id"]})
+
+        del self.index[name]
+        self._save_index()
+        self._emit("worktree.remove.after", {"name": name})
+        return f"Removed worktree '{name}'"
+
+    def _emit(self, event: str, data: dict):
+        """Emit event to events.jsonl"""
+        entry = {"event": event, "data": data, "ts": time.time()}
+        with open(self.events_path, "a") as f:
+            f.write(json.dumps(entry) + "\\n")
+
+# Task binding
+def bind_worktree(self, task_id, worktree_name):
+    task = self._load(task_id)
+    task["worktree"] = worktree_name
+    if task["status"] == "pending":
+        task["status"] = "in_progress"
+    self._save(task)`
+
+const highlightedWorktreeCode = computed(() => {
+  return hljs.highlight(worktreeCode, { language: 'python' }).value
+})
 </script>
 
 <style scoped>
@@ -2853,6 +3484,737 @@ const toolResultJson = `{
 
   .json-tab {
     text-align: center;
+  }
+}
+
+/* Teams Protocol Styles */
+.protocol-flow {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.protocol-flow .subsection-title {
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+.protocol-steps {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.protocol-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.step-badge {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.step-content strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.step-content p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.step-content code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+/* Autonomous Agents Styles */
+.autonomous-mechanisms {
+  margin-top: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 2px solid #0ea5e9;
+}
+
+.autonomous-mechanisms .subsection-title {
+  margin-bottom: 20px;
+  color: #0369a1;
+}
+
+.mechanisms-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.mechanism-item {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.mechanism-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.mechanism-item strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.mechanism-item p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.key-insight-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border: 2px solid #f59e0b;
+}
+
+.insight-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.key-insight-box strong {
+  display: block;
+  font-size: 14px;
+  color: #92400e;
+  margin-bottom: 4px;
+}
+
+.key-insight-box div {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.7;
+}
+
+/* Agent Teams Styles */
+.team-lifecycle {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 2px solid #0ea5e9;
+}
+
+.team-lifecycle .subsection-title {
+  margin-bottom: 16px;
+  color: #0369a1;
+}
+
+.lifecycle-flow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lifecycle-stage {
+  flex: 1;
+  min-width: 140px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stage-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #1f2937;
+  color: white;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.lifecycle-stage.working .stage-badge {
+  background: #3b82f6;
+}
+
+.lifecycle-stage.idle .stage-badge {
+  background: #f59e0b;
+}
+
+.lifecycle-stage.shutdown .stage-badge {
+  background: #ef4444;
+}
+
+.lifecycle-stage p {
+  font-size: 12px;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.lifecycle-arrow {
+  font-size: 20px;
+  color: #9ca3af;
+  font-weight: bold;
+}
+
+.communication-system {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.communication-system .subsection-title {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.comm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.comm-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.comm-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.comm-item strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.comm-item p {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.small-code {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-x: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Protocol Diagrams */
+.protocol-diagrams {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.protocol-diagram {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.protocol-diagram-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.protocol-sequence {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sequence-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sequence-agent {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 60px;
+  text-align: center;
+}
+
+.sequence-agent.lead {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.sequence-agent.teammate {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.sequence-arrow {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.sequence-msg {
+  font-size: 10px;
+  font-family: monospace;
+  color: #4b5563;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+/* FSM Section */
+.fsm-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border: 2px solid #f59e0b;
+}
+
+.fsm-section .subsection-title {
+  margin-bottom: 16px;
+  color: #92400e;
+}
+
+.fsm-diagram {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fsm-state {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.fsm-state.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 2px solid #f59e0b;
+}
+
+.fsm-state.approved {
+  background: #d1fae5;
+  color: #065f46;
+  border: 2px solid #10b981;
+}
+
+.fsm-state.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 2px solid #ef4444;
+}
+
+.fsm-transitions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fsm-transition {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.transition-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.transition-arrow {
+  font-size: 18px;
+  color: #1f2937;
+  font-weight: bold;
+}
+
+.fsm-note {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #78350f;
+  text-align: center;
+}
+
+/* Autonomous Phases */
+.autonomous-phases {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.autonomous-phases .subsection-title {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.phases-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.phase-card {
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid;
+}
+
+.phase-card.work {
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  border-color: #3b82f6;
+}
+
+.phase-card.idle {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  border-color: #f59e0b;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.phase-icon {
+  font-size: 24px;
+}
+
+.phase-header strong {
+  font-size: 15px;
+  color: #1f2937;
+}
+
+.phase-card ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.phase-card li {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* Autonomous Features */
+.autonomous-features {
+  margin-top: 20px;
+}
+
+.autonomous-features .subsection-title {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.feature-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.feature-item strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.feature-item p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 900px) {
+  .protocol-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .mechanisms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .comm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .protocol-diagrams {
+    grid-template-columns: 1fr;
+  }
+
+  .phases-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fsm-diagram {
+    flex-direction: column;
+  }
+
+  .lifecycle-flow {
+    flex-direction: column;
+  }
+
+  .lifecycle-arrow {
+    transform: rotate(90deg);
+  }
+}
+
+/* Worktree Isolation Styles */
+.worktree-binding {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  border: 2px solid #0ea5e9;
+}
+
+.worktree-binding .subsection-title {
+  margin-bottom: 16px;
+  color: #0369a1;
+}
+
+.binding-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.binding-side h5 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.binding-side .small-code {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.binding-arrow {
+  font-size: 24px;
+  color: #6b7280;
+  font-weight: bold;
+}
+
+.worktree-lifecycle {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.worktree-lifecycle .subsection-title {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.lifecycle-steps {
+  display: grid;
+  gap: 12px;
+}
+
+.lifecycle-step {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.lifecycle-step .step-number {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lifecycle-step .step-detail strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.lifecycle-step .step-detail p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.lifecycle-step .step-detail code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.worktree-features {
+  margin-top: 20px;
+}
+
+.worktree-features .subsection-title {
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.wt-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.wt-feature {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.wt-feature-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.wt-feature strong {
+  display: block;
+  font-size: 14px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.wt-feature p {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .binding-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .binding-arrow {
+    transform: rotate(90deg);
+    text-align: center;
+  }
+
+  .lifecycle-steps {
+    gap: 8px;
+  }
+
+  .wt-features-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <nav class="menu-bar">
-    <div class="menu-brand">Harness Engineering Demo</div>
+    <div class="menu-brand">Harness Engineering 架构演近</div>
     <div class="menu-items">
       <router-link to="/" class="menu-item" :class="{ active: $route.path === '/' }">
         首页
