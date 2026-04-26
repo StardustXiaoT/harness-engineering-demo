@@ -174,38 +174,6 @@
           </p>
         </div>
       </div>
-
-      <div class="analogy-section">
-        <h4>类比：Harness 如同游戏的操作系统</h4>
-        <div class="analogy-grid">
-          <div class="analogy-item">
-            <span class="analogy-icon">🎮</span>
-            <div class="analogy-text">
-              <strong>游戏角色</strong>
-              <span>＝ Model（模型）</span>
-            </div>
-          </div>
-          <div class="analogy-arrow">→</div>
-          <div class="analogy-item">
-            <span class="analogy-icon">🖥️</span>
-            <div class="analogy-text">
-              <strong>游戏操作系统</strong>
-              <span>＝ Harness</span>
-            </div>
-          </div>
-          <div class="analogy-arrow">→</div>
-          <div class="analogy-item">
-            <span class="analogy-icon">🎯</span>
-            <div class="analogy-text">
-              <strong>游戏表现</strong>
-              <span>＝ Agent 能力</span>
-            </div>
-          </div>
-        </div>
-        <p class="analogy-note">
-          同样的角色（Model），在 PC 上和手机上（不同的 Harness）表现完全不同
-        </p>
-      </div>
     </div>
 
     <!-- 与其他概念的关系 -->

@@ -4,6 +4,7 @@ import EvolutionView from '../views/EvolutionView.vue'
 import AgentView from '../views/AgentView.vue'
 import HarnessView from '../views/HarnessView.vue'
 import ClaudeCodeView from '../views/ClaudeCodeView.vue'
+import OpenclawView from '../views/OpenclawView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/claude-code',
       name: 'claude-code',
       component: ClaudeCodeView
+    },
+    {
+      path: '/openclaw',
+      name: 'openclaw',
+      component: OpenclawView
     }
   ]
 })

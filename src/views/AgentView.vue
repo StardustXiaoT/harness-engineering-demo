@@ -118,42 +118,6 @@
           </ul>
         </div>
       </div>
-
-      <div class="abilities-section">
-        <h4>真正 Agent 应具备的能力</h4>
-        <div class="abilities-grid">
-          <div class="ability-card">
-            <div class="ability-icon">👁️</div>
-            <h5>感知 (Perception)</h5>
-            <p>接收并理解多模态输入</p>
-          </div>
-          <div class="ability-card">
-            <div class="ability-icon">🧠</div>
-            <h5>推理 (Reasoning)</h5>
-            <p>分析情况，制定计划</p>
-          </div>
-          <div class="ability-card">
-            <div class="ability-icon">🎯</div>
-            <h5>规划 (Planning)</h5>
-            <p>分解任务为步骤</p>
-          </div>
-          <div class="ability-card">
-            <div class="ability-icon">🔧</div>
-            <h5>工具使用 (Tool Use)</h5>
-            <p>调用外部工具扩展能力</p>
-          </div>
-          <div class="ability-card">
-            <div class="ability-icon">🔄</div>
-            <h5>反思 (Reflection)</h5>
-            <p>评估行动效果并调整</p>
-          </div>
-          <div class="ability-card">
-            <div class="ability-icon">📚</div>
-            <h5>学习 (Learning)</h5>
-            <p>从经验中改进行为</p>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Part 3: 构建 Agent 的两种含义 -->

@@ -17,6 +17,9 @@
       <router-link to="/claude-code" class="menu-item" :class="{ active: $route.path === '/claude-code' }">
         Claude Code
       </router-link>
+      <router-link to="/openclaw" class="menu-item" :class="{ active: $route.path === '/openclaw' }">
+        OpenClaw
+      </router-link>
     </div>
   </nav>
 </template>

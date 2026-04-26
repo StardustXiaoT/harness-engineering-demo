@@ -4,6 +4,62 @@ Harness Engineering 的架构演进 - 交互式演示页面
 
 ## 更新内容
 
+### v1.4.0 (2026-04-27)
+
+#### OpenClaw 页面 (/openclaw)
+
+新增 OpenClaw 架构与场景实战演示，包含 6 层架构体系：
+
+1. **Level 1 Execution 执行内核**
+   - Agent Loop 核心循环模式
+   - stop_reason 含义解析（end_turn / tool_use / max_tokens）
+
+2. **Level 2 Capability 能力层**
+   - TOOLS + TOOL_HANDLERS 架构
+   - Hands 执行能力（bash、read_file、write_file 等）
+   - Skills 市场：16,000+ 已注册 Skills，9 类分类目录
+   - 热门 Skills：tavily-search、web-automation、imap-smtp-email 等
+
+3. **Level 3 Context 上下文层**
+   - Sessions 会话持久化（JSONL 存储）
+   - 主 Agent、子 Agent 与 Session 的关系
+   - agent2Agent 通信机制
+
+4. **Level 4 Intelligence 认知层**
+   - Workspace Bootstrap Files（SOUL.md、USER.md、IDENTITY.md 等 8 个文件）
+   - Prompt Assembly Mechanism 提示词组装机制
+
+5. **Level 5 Autonomy 自主层**
+   - Heartbeat 心跳机制
+   - Cron 定时任务
+   - HEARTBEAT.md 配置示例
+
+6. **Level 6 Infrastructure 基础设施层**
+   - Channels 通道：飞书、钉钉、QQ、微信、Telegram、CLI、WebSocket
+   - Gateway & Routing 网关与路由（5 级绑定）
+   - Delivery 消息投递（预写队列）
+   - Resilience 弹性（三层重试洋葱）
+   - Concurrency 并发（Lane 队列）
+
+#### 场景实战
+
+新增 8 个场景实战演示：
+1. 个人情感陪伴 / 生活助手
+2. 资讯自动采集与定时推送
+3. 日报 / 周报编辑助手
+4. 打通邮件系统
+5. 打通飞书文档与多维表格
+6. 构建个人知识库
+7. 公众号自动化发布系统
+8. 接入麦当劳 MCP
+
+#### 技术优化
+- 修复 Mermaid 流程图语法错误
+- 优化 Prompt 展示样式（浅色背景、更易读）
+- 修复 HTML 嵌套警告（ul inside p）
+
+---
+
 ### v1.3.0 (2026-04-24)
 
 #### Multi-Agent 模块完善
@@ -140,6 +196,7 @@ npm run dev
 | /agent | Agent | 澄清 Agent 概念 vs Agent 框架 |
 | /harness | Harness | 理解 Harness 的组成和作用 |
 | /claude-code | Claude Code | Harness Engineering 5 层架构详解 |
+| /openclaw | OpenClaw | OpenClaw 6 层架构 + 场景实战 |
 
 ## 项目结构
 
@@ -156,9 +213,10 @@ harness-demo/
 │   ├── views/
 │   │   ├── HomeView.vue         # 首页（词云图）
 │   │   ├── EvolutionView.vue    # AI 发展页面
-│   │   ├── AgentView.vue        # Agent 页面
-│   │   ├── HarnessView.vue      # Harness 页面
-│   │   └── ClaudeCodeView.vue   # Claude Code 页面（5 层架构）
+│   │   ├── AgentView.vue         # Agent 页面
+│   │   ├── HarnessView.vue       # Harness 页面
+│   │   ├── ClaudeCodeView.vue    # Claude Code 页面（5 层架构）
+│   │   └── OpenclawView.vue     # OpenClaw 页面（6 层架构 + 场景实战）
 │   ├── App.vue                  # 根组件
 │   ├── main.js                  # 入口文件
 │   └── style.css                # 全局样式

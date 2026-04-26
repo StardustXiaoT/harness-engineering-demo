@@ -460,13 +460,12 @@
                 </div>
                 <div class="compression-layer-content">
                   <p><strong>触发条件：</strong>上下文 token 数超过 50000</p>
-                  <p><strong>操作：</strong>
-                    <ul>
-                      <li>保存完整对话记录到 <code>.transcripts/</code> 目录</li>
-                      <li>LLM 生成对话摘要</li>
-                      <li>用 <code>[summary]</code> 替换所有历史消息</li>
-                    </ul>
-                  </p>
+                  <p><strong>操作：</strong></p>
+                  <ul>
+                    <li>保存完整对话记录到 <code>.transcripts/</code> 目录</li>
+                    <li>LLM 生成对话摘要</li>
+                    <li>用 <code>[summary]</code> 替换所有历史消息</li>
+                  </ul>
                   <p><strong>目的：</strong>自动压缩长对话，避免超出上下文限制</p>
                 </div>
               </div>

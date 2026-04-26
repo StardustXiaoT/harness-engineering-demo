@@ -1,12 +1,13 @@
 <template>
   <div ref="mermaidRef" class="mermaid-chart">
     <div v-if="!isClient" class="mermaid-placeholder">Loading diagram...</div>
+    <div v-else-if="renderError" class="mermaid-error">{{ renderError }}</div>
     <div v-else ref="containerRef" class="mermaid-container"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 
 const props = defineProps({
   diagram: {
@@ -18,43 +19,46 @@ const props = defineProps({
 const isClient = ref(false)
 const mermaidRef = ref(null)
 const containerRef = ref(null)
+const renderError = ref('')
+
+const renderDiagram = async () => {
+  if (!containerRef.value || !props.diagram) return
+
+  renderError.value = ''
+
+  try {
+    const mermaid = (await import('mermaid')).default
+
+    await mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      fontFamily: 'inherit'
+    })
+
+    // 使用 mermaid v10+ 的 API
+    const id = 'mermaid-' + Math.random().toString(36).substr(2, 9)
+    const { svg } = await mermaid.render(id, props.diagram)
+    containerRef.value.innerHTML = svg
+  } catch (e) {
+    console.error('Mermaid render error:', e)
+    renderError.value = 'Diagram render failed: ' + e.message
+    if (containerRef.value) {
+      containerRef.value.innerHTML = ''
+    }
+  }
+}
 
 onMounted(async () => {
   isClient.value = true
-
-  // 动态导入 mermaid，确保只在客户端加载
-  const mermaid = (await import('mermaid')).default
-
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: 'default',
-    securityLevel: 'loose',
-    fontFamily: 'inherit'
-  })
-
-  // 渲染图表
-  if (containerRef.value && props.diagram) {
-    try {
-      const { svg } = await mermaid.render('mermaid-' + Math.random().toString(36).substr(2, 9), props.diagram)
-      containerRef.value.innerHTML = svg
-    } catch (e) {
-      console.error('Mermaid render error:', e)
-      containerRef.value.innerHTML = `<div class="mermaid-error">Diagram render failed</div>`
-    }
-  }
+  await nextTick()
+  await renderDiagram()
 })
 
 // 监听 diagram 变化，重新渲染
-watch(() => props.diagram, async (newDiagram) => {
-  if (containerRef.value && isClient.value) {
-    const mermaid = (await import('mermaid')).default
-    try {
-      const { svg } = await mermaid.render('mermaid-' + Math.random().toString(36).substr(2, 9), newDiagram)
-      containerRef.value.innerHTML = svg
-    } catch (e) {
-      console.error('Mermaid render error:', e)
-    }
-  }
+watch(() => props.diagram, async () => {
+  await nextTick()
+  await renderDiagram()
 })
 </script>
 
