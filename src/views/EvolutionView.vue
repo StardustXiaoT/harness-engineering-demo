@@ -199,8 +199,27 @@
           </div>
           <div class="scenario-card">
             <div class="scenario-header">
+              <span class="scenario-icon">🔌</span>
+              <h5>场景二：Tool Calling 调用外部 API</h5>
+            </div>
+            <div class="scenario-content">
+              <p class="scenario-problem">问题：模型无法获取实时或不在训练数据中的信息</p>
+              <div class="scenario-solution">
+                <span class="solution-label">✓ 解决方案</span>
+                <pre>1. 用户问"今天北京天气怎么样？"
+2. 模型识别需要调用天气API
+3. 通过 tool_use 调用 weather API
+4. 获取实时天气数据
+5. 返回结构化结果给模型
+6. 模型生成自然语言回答</pre>
+              </div>
+              <p class="scenario-example"><strong>典型场景：</strong>天气查询、股票行情、数据库查询、CRM 数据获取</p>
+            </div>
+          </div>
+          <div class="scenario-card">
+            <div class="scenario-header">
               <span class="scenario-icon">📚</span>
-              <h5>场景二：RAG 知识问答</h5>
+              <h5>场景三：RAG 知识问答</h5>
             </div>
             <div class="scenario-content">
               <p class="scenario-problem">问题：模型不知道企业内部规章制度</p>
@@ -796,6 +815,16 @@ const tabs = [
   color: #dc2626;
   font-weight: 500;
   margin: 0;
+}
+
+.scenario-example {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.scenario-example strong {
+  color: #1f2937;
 }
 
 /* Context Engineering 样式 */
