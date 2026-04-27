@@ -6,6 +6,7 @@ import HarnessView from '../views/HarnessView.vue'
 import ClaudeCodeView from '../views/ClaudeCodeView.vue'
 import OpenclawView from '../views/OpenclawView.vue'
 import LLMProviderView from '../views/LLMProviderView.vue'
+import VisionView from '../views/VisionView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +48,11 @@ const router = createRouter({
       path: '/llm-providers',
       name: 'llm-providers',
       component: LLMProviderView
+    },
+    {
+      path: '/vision',
+      name: 'vision',
+      component: VisionView
     }
   ]
 })

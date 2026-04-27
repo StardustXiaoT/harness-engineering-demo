@@ -23,6 +23,9 @@
       <router-link to="/llm-providers" class="menu-item" :class="{ active: $route.path === '/llm-providers' }">
         LLM 供应商
       </router-link>
+      <router-link to="/vision" class="menu-item" :class="{ active: $route.path === '/vision' }">
+        愿景
+      </router-link>
     </div>
   </nav>
 </template>
