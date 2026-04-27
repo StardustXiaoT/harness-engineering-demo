@@ -88,6 +88,7 @@ const wordCloudData = [
     words: [
       { text: 'Cursor', size: 'large' },
       { text: 'Claude Code', size: 'large' },
+      { text: 'Trae', size: 'large' },
       { text: 'Codex', size: 'medium' },
       { text: 'Antigravity', size: 'small' }
     ]
