@@ -206,7 +206,7 @@
               </div>
             </div>
             <p class="concept-desc">
-              Skill 是预定义的任务流程，封装复杂操作为可复用的技能。通过渐进式披露优化上下文使用。
+              Skill 是预定义的任务流程，封装复杂操作为可复用的技能。通过渐进式披露优化上下文使用，就像一个"折叠式说明书"——先展示标题，需要时展开步骤，执行时才看到细节。
             </p>
 
             <!-- Skill 定义 -->
@@ -270,19 +270,19 @@
                     <span class="optimization-icon">📊</span>
                     <strong>渐进式披露</strong>
                   </div>
-                  <p>Layer 1 显示技能名称，Layer 2 按需展示完整内容，最小化 token 消耗。</p>
+                  <p>先看到标题（Skill），需要时展开步骤（Workflow），执行时才看到细节（Tool Params）。三层折叠，按需展开。</p>
                 </div>
               </div>
             </div>
 
-            <!-- 两层架构展示 -->
+            <!-- 三层架构展示 -->
             <div class="skill-architecture">
               <div class="layer-box layer-1">
                 <div class="layer-header">
-                  <span class="layer-badge">Layer 1</span>
+                  <span class="layer-badge">①</span>
                   <span class="layer-cost">~50-100 token/技能</span>
                 </div>
-                <div class="layer-title">系统提示 · 始终存在</div>
+                <div class="layer-title">标题（Skill） · 始终可见</div>
                 <pre class="layer-content">Skills available:
   - git: Git workflow and best practices
   - code-review: Security and quality checklist
@@ -294,10 +294,10 @@
 
               <div class="layer-box layer-2">
                 <div class="layer-header">
-                  <span class="layer-badge">Layer 2</span>
+                  <span class="layer-badge">②</span>
                   <span class="layer-cost">~500-2000 token</span>
                 </div>
-                <div class="layer-title">tool_result · 按需加载</div>
+                <div class="layer-title">步骤（Workflow） · 需要时展开</div>
                 <pre class="layer-content">&lt;skill name="git"&gt;
 ## Git Workflow - Step by Step
 
@@ -320,6 +320,22 @@
   git push -u origin feature/description
   # Then create PR on GitHub
 &lt;/skill&gt;</pre>
+              </div>
+
+              <div class="layer-arrow">↓ 执行 Tool 时</div>
+
+              <div class="layer-box layer-3">
+                <div class="layer-header">
+                  <span class="layer-badge">③</span>
+                  <span class="layer-cost">按需读取</span>
+                </div>
+                <div class="layer-title">细节（Tool Params） · 执行时才看到</div>
+                <pre class="layer-content">// Tool Call: bash
+{
+  "command": "git checkout -b feature/fix-login",
+  "working_dir": "/project",
+  "timeout_ms": 30000
+}</pre>
               </div>
             </div>
           </div>
@@ -1095,6 +1111,7 @@ if unclaimed: claim()  # 否则认领任务</pre>
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import hljs from 'highlight.js/lib/core'
 import python from 'highlight.js/lib/languages/python'
 import json from 'highlight.js/lib/languages/json'
@@ -1107,6 +1124,12 @@ hljs.registerLanguage('json', json)
 hljs.registerLanguage('plaintext', plaintext)
 
 const activeTab = ref('execution')
+
+// 从路由 query 读取初始 tab（用于跨页面跳转）
+const route = useRoute()
+if (route.query.tab) {
+  activeTab.value = route.query.tab
+}
 
 // JSON Tab 状态
 const activeJsonTab = ref('multi')
@@ -3233,6 +3256,11 @@ const highlightedWorktreeCode = computed(() => {
 .layer-box.layer-2 {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border-color: #22c55e;
+}
+
+.layer-box.layer-3 {
+  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+  border-color: #f97316;
 }
 
 .layer-header {

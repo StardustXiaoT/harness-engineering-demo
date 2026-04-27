@@ -20,6 +20,9 @@
       <router-link to="/openclaw" class="menu-item" :class="{ active: $route.path === '/openclaw' }">
         OpenClaw
       </router-link>
+      <router-link to="/llm-providers" class="menu-item" :class="{ active: $route.path === '/llm-providers' }">
+        LLM 供应商
+      </router-link>
     </div>
   </nav>
 </template>

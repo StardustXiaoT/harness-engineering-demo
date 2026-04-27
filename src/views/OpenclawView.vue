@@ -56,7 +56,7 @@
           :class="{ active: activeScenario === scenario.id }"
           @click="activeScenario = scenario.id"
         >
-          <span class="scenario-num">{{ String(index + 1).padStart(2, '0') }}</span>
+          <span class="scenario-num">{{ index < 10 ? '0' + index : String(index) }}</span>
           <span class="scenario-name">{{ scenario.name }}</span>
         </div>
       </div>
@@ -75,75 +75,17 @@
           <h3>Execution 执行内核</h3>
         </div>
         <p class="section-intro">
-          Agent 的最小形态：一个 while 循环 + stop_reason。messages[] 是唯一的状态，每次 API 调用时 LLM 都会看到完整数组。
+          Agent 的最小形态：一个 while 循环 + stop_reason。详细内容请参考 Claude Code 页面的 Agent Loop 模块。
         </p>
 
-        <!-- 架构图 -->
-        <div class="flow-diagram">
-          <h4>架构流程</h4>
-          <MermaidChart :diagram="agentLoopDiagram" />
-        </div>
-
-        <div class="concept-card">
-          <div class="concept-header">
-            <span class="concept-icon">🔄</span>
-            <div>
-              <h4>Agent Loop</h4>
-              <span class="concept-subtitle">核心循环模式</span>
-            </div>
-          </div>
-          <p class="concept-desc">
-            <code>while True</code> + <code>stop_reason</code> -- 这就是一个 Agent。所有 AI Agent 的核心模式。后续所有功能 -- 工具、会话、路由、投递 -- 都是在这个循环之上叠加的层，循环本身不会改变。
-          </p>
-
-          <div class="code-block">
-            <div class="code-header">
-              <span class="code-title">完整的 Agent 循环</span>
-              <span class="code-lang">Python</span>
-            </div>
-            <pre><code v-html="highlightedAgentLoop"></code></pre>
-          </div>
-
-          <div class="stop-reason-table">
-            <h4>stop_reason 含义</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th>stop_reason</th>
-                  <th>含义</th>
-                  <th>动作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>"end_turn"</code></td>
-                  <td>模型完成了回复</td>
-                  <td>打印，继续循环</td>
-                </tr>
-                <tr>
-                  <td><code>"tool_use"</code></td>
-                  <td>模型想调用工具</td>
-                  <td>执行，反馈结果</td>
-                </tr>
-                <tr>
-                  <td><code>"max_tokens"</code></td>
-                  <td>回复被 token 限制截断</td>
-                  <td>打印部分文本</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="key-insight">
-          <div class="insight-icon">💡</div>
-          <div class="insight-content">
-            <h4>关键要点</h4>
-            <ul>
-              <li><strong>messages[]</strong> 是唯一的状态，每次 API 调用都会传递完整数组</li>
-              <li><strong>stop_reason</strong> 是每次响应后的唯一决策点</li>
-              <li>循环结构永远不变，后续章节围绕它添加功能</li>
-            </ul>
+        <div class="cross-link-card">
+          <div class="cross-link-icon">🔗</div>
+          <div class="cross-link-content">
+            <h4>查看 Agent Loop 详解</h4>
+            <p>Agent Loop 核心循环模式、stop_reason 含义、完整代码示例等详细内容已在 Claude Code 页面展示。</p>
+            <button class="cross-link-button" @click="router.push({ path: '/claude-code', query: { tab: 'execution' } })">
+              跳转到 Claude Code →
+            </button>
           </div>
         </div>
       </div>
@@ -158,74 +100,14 @@
           工具 = 数据 (schema) + 处理函数映射表。模型选一个名字，你查表执行。添加新工具只需要在 TOOLS 中加一项 + 在 TOOL_HANDLERS 中加一项，循环本身不需要改动。
         </p>
 
-        <div class="flow-diagram">
-          <h4>工具调用流程</h4>
-          <MermaidChart :diagram="toolUseDiagram" />
-        </div>
-
-        <div class="concept-card">
-          <div class="concept-header">
-            <span class="concept-icon">🔧</span>
-            <div>
-              <h4>TOOLS + TOOL_HANDLERS</h4>
-              <span class="concept-subtitle">Schema 定义与分发表</span>
-            </div>
-          </div>
-          <p class="concept-desc">
-            两个平行的数据结构。TOOLS 告诉模型有什么工具，TOOL_HANDLERS 告诉代码如何执行。
-          </p>
-
-          <div class="code-block">
-            <div class="code-header">
-              <span class="code-title">Schema + 分发表</span>
-              <span class="code-lang">Python</span>
-            </div>
-            <pre><code v-html="highlightedToolUse"></code></pre>
-          </div>
-        </div>
-
-        <div class="concept-card">
-          <div class="concept-header">
-            <span class="concept-icon">✋</span>
-            <div>
-              <h4>Hands - 执行能力</h4>
-              <span class="concept-subtitle">Agent 的"手"</span>
-            </div>
-          </div>
-          <p class="concept-desc">
-            让 Agent 具备操作真实世界的能力：
-          </p>
-          <div class="tools-grid">
-            <div class="tool-item">
-              <span class="tool-icon">💻</span>
-              <span class="tool-name">bash</span>
-              <span class="tool-desc">执行 Shell 命令</span>
-            </div>
-            <div class="tool-item">
-              <span class="tool-icon">📖</span>
-              <span class="tool-name">read_file</span>
-              <span class="tool-desc">读取文件内容</span>
-            </div>
-            <div class="tool-item">
-              <span class="tool-icon">✍️</span>
-              <span class="tool-name">write_file</span>
-              <span class="tool-desc">写入文件</span>
-            </div>
-            <div class="tool-item">
-              <span class="tool-icon">✏️</span>
-              <span class="tool-name">edit_file</span>
-              <span class="tool-desc">编辑文件</span>
-            </div>
-            <div class="tool-item">
-              <span class="tool-icon">🌐</span>
-              <span class="tool-name">browser</span>
-              <span class="tool-desc">浏览器自动化</span>
-            </div>
-            <div class="tool-item">
-              <span class="tool-icon">🗄️</span>
-              <span class="tool-name">database</span>
-              <span class="tool-desc">数据库操作</span>
-            </div>
+        <div class="cross-link-card">
+          <div class="cross-link-icon">🔗</div>
+          <div class="cross-link-content">
+            <h4>查看 Tool Use 详解</h4>
+            <p>TOOLS + TOOL_HANDLERS 架构、Schema 定义与分发表、Hands 执行能力（bash / read / write / edit / browser / database）等详细内容已在 Claude Code 页面展示。</p>
+            <button class="cross-link-button" @click="router.push({ path: '/claude-code', query: { tab: 'capability' } })">
+              跳转到 Claude Code →
+            </button>
           </div>
         </div>
 
@@ -279,6 +161,10 @@
                 <div class="skill-item">
                   <span class="skill-name">find-search</span>
                   <span class="skill-desc">增强文件搜索，精准定位</span>
+                </div>
+                <div class="skill-item">
+                  <span class="skill-name">find-skills</span>
+                  <span class="skill-desc">帮你查找 ClawHub 上的 Skills</span>
                 </div>
               </div>
             </div>
@@ -462,52 +348,56 @@
 
       <!-- 3. Context 上下文层 -->
       <div v-show="activeTab === 'context'" class="tab-panel">
-        <div name="section-header">
+        <div class="section-header">
           <span class="section-badge level-3">Level 3</span>
           <h3>Context 上下文层</h3>
         </div>
         <p class="section-intro">
-          会话持久化 + 记忆检索。JSONL replay + 跨 session 持久化 + 用户级隔离。这是比 Claude Code 更强的持久系统，不是简单的 prompt 注入。
+          Session = 一个 JSONL 日志 + 自动上下文控制。会话持久化 + 上下文保护，真正的磁盘级存储，不是 prompt 注入。
         </p>
 
+        <!-- Session 只做三件事 -->
         <div class="concept-card">
           <div class="concept-header">
-            <span class="concept-icon">💾</span>
+            <span class="concept-icon">🧠</span>
             <div>
-              <h4>Sessions - 会话持久化</h4>
-              <span class="concept-subtitle">JSONL 存储</span>
+              <h4>Session 只做三件事</h4>
+              <span class="concept-subtitle">Session 的本质</span>
+            </div>
+          </div>
+          <div class="subagent-core">
+            <div class="core-trait" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fcd34d;">
+              <div class="trait-icon">📄</div>
+              <div class="trait-label">存储对话</div>
+            </div>
+            <div class="core-trait" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-color: #93c5fd;">
+              <div class="trait-icon">🔄</div>
+              <div class="trait-label">还原上下文</div>
+            </div>
+            <div class="core-trait" style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border-color: #f9a8d4;">
+              <div class="trait-icon">✂️</div>
+              <div class="trait-label">控制大小</div>
+            </div>
+          </div>
+          <div class="session-trait-desc">
+            <p><strong>1. 存储对话</strong> —— 用 JSONL 文件追加写入，永远不会覆盖旧数据。</p>
+            <p><strong>2. 还原上下文</strong> —— 把日志转换成 messages（给 LLM 看的格式）。</p>
+            <p><strong>3. 控制上下文大小</strong> —— 防止超过模型 token 限制。</p>
+          </div>
+        </div>
+
+        <!-- JSONL 数据结构 -->
+        <div class="concept-card">
+          <div class="concept-header">
+            <span class="concept-icon">📦</span>
+            <div>
+              <h4>JSONL 数据结构</h4>
+              <span class="concept-subtitle">追加写入 · 完整保留 · 可恢复</span>
             </div>
           </div>
           <p class="concept-desc">
-            JSONL: 写入追加, 读取重放。溢出时总结旧消息。真正的持久系统，而非 prompt 注入。
+            每一行是一条记录，类型覆盖 user、assistant、tool_use、tool_result。Append-only，Replay 可恢复，完整历史始终保存在磁盘。
           </p>
-
-          <div class="sessions-flow">
-            <div class="flow-step">
-              <span class="step-icon">✍️</span>
-              <span class="step-title">写入追加</span>
-              <span class="step-desc">Append only，适合高并发</span>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <span class="step-icon">📖</span>
-              <span class="step-title">读取重放</span>
-              <span class="step-desc">Replay 完整会话</span>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <span class="step-icon">📦</span>
-              <span class="step-title">溢出压缩</span>
-              <span class="step-desc">总结旧消息</span>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <span class="step-icon">🔒</span>
-              <span class="step-title">用户隔离</span>
-              <span class="step-desc">会话级隔离</span>
-            </div>
-          </div>
-
           <div class="code-block">
             <div class="code-header">
               <span class="code-title">Session 存储格式</span>
@@ -517,73 +407,120 @@
           </div>
         </div>
 
-        <div class="key-insight">
-          <div class="insight-icon">💡</div>
-          <div class="insight-content">
-            <h4>为什么比 Claude Code 更强？</h4>
-            <ul>
-              <li><strong>真正的持久化</strong>：文件级存储，而非内存</li>
-              <li><strong>跨 session</strong>：重启后可以恢复</li>
-              <li><strong>用户隔离</strong>：安全的多租户支持</li>
-              <li><strong>溢出处理</strong>：自动压缩，而非强制截断</li>
-            </ul>
+        <!-- 运行流程 -->
+        <div class="concept-card">
+          <div class="concept-header">
+            <span class="concept-icon">🔄</span>
+            <div>
+              <h4>每轮请求的流程</h4>
+              <span class="concept-subtitle">JSONL = 真实数据，messages = 上下文</span>
+            </div>
+          </div>
+          <div class="sessions-flow">
+            <div class="flow-step">
+              <span class="step-icon">📄</span>
+              <span class="step-title">读取 JSONL</span>
+              <span class="step-desc">从磁盘加载日志</span>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <span class="step-icon">🔄</span>
+              <span class="step-title">Rebuild</span>
+              <span class="step-desc">日志 → messages</span>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <span class="step-icon">🤖</span>
+              <span class="step-title">调用 LLM</span>
+              <span class="step-desc">发送上下文</span>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <span class="step-icon">📝</span>
+              <span class="step-title">写回 JSONL</span>
+              <span class="step-desc">追加新记录</span>
+            </div>
+          </div>
+          <div class="analogy-card" style="margin-top: 16px;">
+            <div class="analogy-icon">👉</div>
+            <div class="analogy-content">
+              <p>
+                <strong>JSONL</strong> 是真实数据源，<strong>messages</strong> 是每次给模型临时组装的上下文窗口。改的是 messages，JSONL 只追加不修改。
+              </p>
+            </div>
           </div>
         </div>
 
-        <!-- Agent 体系 -->
+        <!-- Context Guard -->
         <div class="concept-card">
           <div class="concept-header">
-            <span class="concept-icon">🤖</span>
+            <span class="concept-icon">🛡️</span>
             <div>
-              <h4>主 Agent、子 Agent 与 Session</h4>
-              <span class="concept-subtitle">智能体体系</span>
+              <h4>Context Guard 上下文保护</h4>
+              <span class="concept-subtitle">四级重试策略</span>
             </div>
           </div>
           <p class="concept-desc">
-            理解 OpenClaw 最核心的三个概念：谁在干活、怎么分身、对话怎么隔离。
+            对话会越来越长，模型有 token 上限。Context Guard 通过四级重试策略，逐级压缩上下文，确保请求成功。
           </p>
 
-          <div class="agent-architecture">
-            <div class="agent-section">
-              <div class="section-title">主 Agent（Main Agent）</div>
-              <ul class="concept-list">
-                <li><strong>默认 Main Agent</strong>：系统自带一个默认 Agent，开箱即用</li>
-                <li><strong>自定义 Main Agent</strong>：可创建多个 Main Agent，每个拥有独立的 workspace、SOUL.md、Memory、Session，互不干扰</li>
-                <li><strong>Skills 配置</strong>：可配置为独立专属或全局共享</li>
-              </ul>
+          <div class="context-guard-steps">
+            <div class="guard-step">
+              <div class="guard-step-header">
+                <span class="guard-badge attempt-0">1</span>
+                <h5>直接调用</h5>
+              </div>
+              <p class="guard-step-desc">不做任何处理，正常发送。大多数情况下一次成功。</p>
             </div>
+            <div class="guard-step">
+              <div class="guard-step-header">
+                <span class="guard-badge attempt-1">2</span>
+                <h5>截断 Tool 输出</h5>
+              </div>
+              <p class="guard-step-desc">删除过大的 Tool 返回（如文件内容、JSON 数据），因为它们占 token 多、信息密度低。</p>
+            </div>
+            <div class="guard-step">
+              <div class="guard-step-header">
+                <span class="guard-badge attempt-2">3</span>
+                <h5>压缩历史（Compaction）</h5>
+              </div>
+              <p class="guard-step-desc">旧对话 → 摘要，新对话 → 保留。用"摘要"替代"历史"，保留最近 20%，压缩最早 50%。</p>
+            </div>
+            <div class="guard-step fail">
+              <div class="guard-step-header">
+                <span class="guard-badge attempt-fail">✗</span>
+                <h5>仍然超限 → 报错</h5>
+              </div>
+              <p class="guard-step-desc">三级策略均无效时，返回错误。</p>
+            </div>
+          </div>
 
-            <div class="agent-section">
-              <div class="section-title">子 Agent（Sub-Agent）</div>
-              <ul class="concept-list">
-                <li>由 Main Agent 临时创建，继承 Main Agent 全部配置</li>
-                <li>通常用于并行跑任务，子 Agent 还可以继续嵌套创建孙 Agent</li>
-                <li><strong>创建方式</strong>：自然语言 "创建 3 个 subagent 帮我分别总结这 3 篇文档" 或命令行 /spawn</li>
-              </ul>
+          <div class="compaction-diagram">
+            <h5>压缩策略示意</h5>
+            <div class="compaction-visual">
+              <div class="compact-region compressed">
+                <span class="region-label">最早 50% → 摘要</span>
+                <span class="region-detail">[summary] "Understood"</span>
+              </div>
+              <div class="compact-region middle">
+                <span class="region-label">中间 30% → 保留</span>
+                <span class="region-detail">原始消息</span>
+              </div>
+              <div class="compact-region keep">
+                <span class="region-label">最近 20% → 保留</span>
+                <span class="region-detail">原始消息</span>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <div class="agent-section">
-              <div class="section-title">会话 / Session</div>
-              <ul class="concept-list">
-                <li><strong>1 个 Agent + 1 个对话通道 = 1 个 Session</strong></li>
-                <li>WebUI + main agent = session_1</li>
-                <li>钉钉用户 A 私聊 + main agent = session_2</li>
-                <li>钉钉用户 B 私聊 + main agent = session_3</li>
-                <li>钉钉群聊 + main agent = session_4</li>
-                <li>飞书私聊 + main agent = session_5</li>
-                <li>每个 Session 的上下文完全独立，互不干扰</li>
-                <li>同一个 Agent 可以同时服务多个渠道、多个用户</li>
-              </ul>
-            </div>
-
-            <div class="agent-section">
-              <div class="section-title">Agent 间通信：agent2Agent</div>
-              <ul class="concept-list">
-                <li>不同 Main Agent 之间可以通过 agent2Agent 方式通信</li>
-                <li>由 Gateway 做消息转发</li>
-                <li>例如：「搜索 Agent」找到信息后自动转交给「写作 Agent」完成文章撰写</li>
-              </ul>
-            </div>
+        <div class="analogy-card">
+          <div class="analogy-icon">🧠</div>
+          <div class="analogy-content">
+            <h4>最简理解</h4>
+            <p>
+              Session 可以理解为三件事的组合：<strong>📄 日志系统</strong>（JSONL 持久化存储）+ <strong>🔄 上下文生成器</strong>（rebuild 组装 messages）+ <strong>✂️ 压缩器</strong>（compaction 控制大小）。
+            </p>
           </div>
         </div>
       </div>
@@ -707,28 +644,131 @@
           <h3>Autonomy 自主层</h3>
         </div>
         <p class="section-intro">
-          让 Agent 从"被调用"变成"主动运行"。定时触发任务，实现真正的自主行为。
+          让 Agent 从"被动响应"变成"主动运行"。三种核心机制：Heartbeat 心跳巡检、Cron 定时任务、SubAgent 分身执行。
         </p>
 
+        <div class="dual-card">
+          <!-- Heartbeat -->
+          <div class="concept-card">
+            <div class="concept-header">
+              <span class="concept-icon">💓</span>
+              <div>
+                <h4>Heartbeat 心跳</h4>
+                <span class="concept-subtitle">主会话的"定期巡检"</span>
+              </div>
+            </div>
+            <p class="concept-desc">
+              像一个闹钟提醒你"该检查了"。在主会话上下文中运行，能看到最近的对话历史，适合批量巡检多个事项。
+            </p>
+            <div class="spec-list">
+              <div class="spec-item"><span class="spec-label">运行上下文</span><span class="spec-value">主会话内（能看到对话历史）</span></div>
+              <div class="spec-item"><span class="spec-label">时间精度</span><span class="spec-value">宽松，偏差几分钟无影响</span></div>
+              <div class="spec-item"><span class="spec-label">输出位置</span><span class="spec-value">只在主会话里，不主动推送到其他频道</span></div>
+              <div class="spec-item"><span class="spec-label">静默模式</span><span class="spec-value">可返回 HEARTBEAT_OK 表示"一切正常"</span></div>
+            </div>
+            <div class="example-list">
+              <h5>适合场景</h5>
+              <div class="example-item">
+                <span class="example-icon">📬</span>
+                <span>"每隔 30 分钟检查一下有没有新邮件、今天有没有即将开始的会议"</span>
+              </div>
+              <div class="example-item">
+                <span class="example-icon">🔀</span>
+                <span>"批量检查邮件 + 日历 + 天气，结合最近对话做判断"</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cron -->
+          <div class="concept-card">
+            <div class="concept-header">
+              <span class="concept-icon">⏰</span>
+              <div>
+                <h4>Cron 定时任务</h4>
+                <span class="concept-subtitle">独立运行的"定时脚本"</span>
+              </div>
+            </div>
+            <p class="concept-desc">
+              像一个定时执行的脚本。隔离运行，不依赖主会话历史，精确到分钟级触发，适合单点、确定性的任务。
+            </p>
+            <div class="spec-list">
+              <div class="spec-item"><span class="spec-label">运行上下文</span><span class="spec-value">隔离运行（不依赖主会话历史）</span></div>
+              <div class="spec-item"><span class="spec-label">时间精度</span><span class="spec-value">精确到分钟（9:00 AM sharp）</span></div>
+              <div class="spec-item"><span class="spec-label">输出位置</span><span class="spec-value">可直接推送到指定频道</span></div>
+              <div class="spec-item"><span class="spec-label">触发模式</span><span class="spec-value">标准 cron 表达式 / 一次性提醒</span></div>
+            </div>
+            <div class="example-list">
+              <h5>适合场景</h5>
+              <div class="example-item">
+                <span class="example-icon">🌤️</span>
+                <span>"每天早上 8:00 发送天气播报到用户频道"</span>
+              </div>
+              <div class="example-item">
+                <span class="example-icon">📰</span>
+                <span>"每周一 9:00 发送新闻简报到飞书群"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 对比表 -->
+        <div class="comparison-card">
+          <h4>📊 对比一览</h4>
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>维度</th>
+                <th>💓 Heartbeat</th>
+                <th>⏰ Cron</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>运行上下文</td>
+                <td>主会话内（有对话历史）</td>
+                <td>隔离运行（无上下文）</td>
+              </tr>
+              <tr>
+                <td>时间精度</td>
+                <td>宽松（~30 min）</td>
+                <td>精确（9:00 AM sharp）</td>
+              </tr>
+              <tr>
+                <td>能看对话历史</td>
+                <td>✅</td>
+                <td>❌</td>
+              </tr>
+              <tr>
+                <td>批量检查</td>
+                <td>✅ 适合同时查多个事项</td>
+                <td>❌ 单一任务</td>
+              </tr>
+              <tr>
+                <td>静默模式</td>
+                <td>✅ 可返回 HEARTBEAT_OK</td>
+                <td>总是有输出</td>
+              </tr>
+              <tr>
+                <td>推送到频道</td>
+                <td>不直接推</td>
+                <td>✅ 可以直接推</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HEARTBEAT.md 示例 -->
         <div class="concept-card">
           <div class="concept-header">
-            <span class="concept-icon">💓</span>
+            <span class="concept-icon">📝</span>
             <div>
-              <h4>Heartbeat 心跳机制</h4>
-              <span class="concept-subtitle">主动型 Agent</span>
+              <h4>Heartbeat 配置</h4>
+              <span class="concept-subtitle">HEARTBEAT.md</span>
             </div>
           </div>
           <p class="concept-desc">
-            一个定时检查线程，定期询问"该不该跑？"。如果满足触发条件，就主动执行任务。
-            心跳任务和用户消息走同一消息管线，共享完整的上下文环境。
+            在 HEARTBEAT.md 中定义心跳需要检查的事项，Agent 每次心跳时按清单执行。
           </p>
-          <ul class="concept-list">
-            <li><strong>定时触发</strong>：按设定的时间间隔定期检查，如每分钟、每小时</li>
-            <li><strong>条件判断</strong>：根据配置的条件决定是否执行，如特定时间点、有新数据</li>
-            <li><strong>完整上下文</strong>：心跳任务可以使用 soul.md、memory.md 等完整的工作区文件</li>
-            <li><strong>结果通知</strong>：任务执行完成后通过飞书、邮件等渠道推送结果</li>
-          </ul>
-
           <div class="code-block">
             <div class="code-header">
               <span class="code-title">HEARTBEAT.md 示例</span>
@@ -745,23 +785,109 @@
           </div>
         </div>
 
+        <!-- 类比 -->
+        <div class="analogy-card">
+          <div class="analogy-icon">💡</div>
+          <div class="analogy-content">
+            <h4>打个比方</h4>
+            <p>
+              <strong>Heartbeat</strong> 像是你每天早上起床后，顺手检查一下邮箱、日历、天气——一次性搞定，不赶时间。<br>
+              <strong>Cron</strong> 像是你设了个闹钟，到点就响，准时推送一条消息给你。
+            </p>
+          </div>
+        </div>
+        <!-- SubAgent -->
         <div class="concept-card">
           <div class="concept-header">
-            <span class="concept-icon">⏰</span>
+            <span class="concept-icon">⚡</span>
             <div>
-              <h4>Cron 定时任务</h4>
-              <span class="concept-subtitle">灵活的时间配置</span>
+              <h4>SubAgent 核心机制</h4>
+              <span class="concept-subtitle">分任务 · 并行执行 · 隔离上下文</span>
             </div>
           </div>
           <p class="concept-desc">
-            支持 cron 表达式配置定时任务，可以实现复杂的调度策略：
+            SubAgent 的本质只有三件事：主 Agent 把任务拆出去，后台并行跑，每个 SubAgent 有独立 Session 互不干扰。
           </p>
-          <ul class="concept-list">
-            <li><strong>每日定时</strong>：每天早上 8:00 发送行业简报</li>
-            <li><strong>周期任务</strong>：每隔 30 分钟检查一次邮件</li>
-            <li><strong>工作日执行</strong>：仅在周一到周五执行任务</li>
-            <li><strong>一次性任务</strong>：在指定时间执行一次，如会议开始前提醒</li>
-          </ul>
+
+          <div class="subagent-core">
+            <div class="core-trait">
+              <div class="trait-icon">📋</div>
+              <div class="trait-label">分任务</div>
+            </div>
+            <div class="core-trait">
+              <div class="trait-icon">⚙️</div>
+              <div class="trait-label">并行执行</div>
+            </div>
+            <div class="core-trait">
+              <div class="trait-icon">🔒</div>
+              <div class="trait-label">独立 Session</div>
+            </div>
+          </div>
+
+          <div class="flow-diagram">
+            <h4>SubAgent 三大机制</h4>
+            <MermaidChart :diagram="subagentDiagram" />
+          </div>
+
+          <div class="subagent-mechanism">
+            <div class="mechanism-card">
+              <div class="mechanism-header">
+                <span class="mechanism-badge">1</span>
+                <h5>Delegation 任务委托</h5>
+              </div>
+              <p class="mechanism-desc">
+                一个复杂任务 → 拆成多个子任务 → 分给多个 SubAgent 各干各的。主 Agent 只管派发和回收结果。
+              </p>
+              <div class="example-list">
+                <div class="example-item">
+                  <span class="example-icon">📤</span>
+                  <span>"把这 10 个文件分别重写，每个交一个 subagent 负责"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mechanism-card">
+              <div class="mechanism-header">
+                <span class="mechanism-badge">2</span>
+                <h5>Parallelism 并行执行</h5>
+              </div>
+              <p class="mechanism-desc">
+                多个 SubAgent 同时启动、同时跑任务，不用排队等上一个做完。效率翻倍，速度更快。
+              </p>
+              <div class="example-list">
+                <div class="example-item">
+                  <span class="example-icon">⏱️</span>
+                  <span>"同时启动 3 个 subagent 分析数据、写文档、查 bug，全部完成后汇总"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mechanism-card">
+              <div class="mechanism-header">
+                <span class="mechanism-badge">3</span>
+                <h5>Isolation 上下文隔离</h5>
+              </div>
+              <p class="mechanism-desc">
+                每个 SubAgent 拥有自己独立的 Session，不共享上下文。避免任务之间互相污染或泄漏。
+              </p>
+              <div class="example-list">
+                <div class="example-item">
+                  <span class="example-icon">🔐</span>
+                  <span>"SubAgent A 的对话历史 SubAgent B 看不到，主 Agent 负责收拢"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="analogy-card">
+            <div class="analogy-icon">💡</div>
+            <div class="analogy-content">
+              <h4>打个比方</h4>
+              <p>
+                SubAgent 就是主 Agent 的"分身术"——<strong>Delegation</strong> 像主管把任务派给下属，<strong>Parallelism</strong> 像几个人同时干活比一个人快，<strong>Isolation</strong> 像每人一间独立办公室不互相打扰。
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -852,9 +978,173 @@
           </div>
         </div>
 
-        <!-- Gateway & Routing -->
+        <!-- Agent 设计模式 -->
+        <div class="concept-card">
+          <div class="concept-header">
+            <span class="concept-icon">🏗️</span>
+            <div>
+              <h4>Agent 设计模式</h4>
+              <span class="concept-subtitle">一个能力域 = 一个 Agent，多个任务 = 多 Session</span>
+            </div>
+          </div>
+          <p class="concept-desc">
+            最佳实践不是固定"一个 Agent 或多个 Agent"，而是根据能力域来划分。
+          </p>
 
-        <!-- Delivery -->
+          <div class="dual-card">
+            <!-- 方案 A -->
+            <div class="concept-card">
+              <div class="concept-header">
+                <span class="concept-icon">🟢</span>
+                <div>
+                  <h4>方案 A：一个 Agent + 多个 Session</h4>
+                  <span class="concept-subtitle">推荐默认方案</span>
+                </div>
+              </div>
+              <p class="concept-desc">
+                同一领域、工具差不多、只是任务不同。共享工具、Skills、Workspace，仅做任务隔离。
+              </p>
+              <div class="agent-design-flow">
+                <div class="design-center">
+                  <div class="design-icon">🤖</div>
+                  <div class="design-label">General Assistant</div>
+                </div>
+                <div class="design-branches">
+                  <div class="design-branch">
+                    <span class="branch-icon">💬</span>
+                    <span>Session A（新闻搜索）</span>
+                  </div>
+                  <div class="design-branch">
+                    <span class="branch-icon">📄</span>
+                    <span>Session B（生成 PDF）</span>
+                  </div>
+                  <div class="design-branch">
+                    <span class="branch-icon">📊</span>
+                    <span>Session C（生成 PPT）</span>
+                  </div>
+                </div>
+              </div>
+              <div class="design-features">
+                <div class="feature-item">
+                  <span class="feature-icon">✅</span>
+                  <span><strong>共享工具 / Skills</strong></span>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">✅</span>
+                  <span><strong>共享 Workspace</strong>（文件系统共用）</span>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">✅</span>
+                  <span><strong>仅任务隔离</strong>（Context 独立）</span>
+                </div>
+              </div>
+              <div class="design-pros">
+                <h5>优势</h5>
+                <p>成本低、Context 可复用、不需要重复加载 Skill</p>
+              </div>
+            </div>
+
+            <!-- 方案 B -->
+            <div class="concept-card">
+              <div class="concept-header">
+                <span class="concept-icon">🔵</span>
+                <div>
+                  <h4>方案 B：多个 Agent + 多个 Session</h4>
+                  <span class="concept-subtitle">OpenClaw 工程化风格</span>
+                </div>
+              </div>
+              <p class="concept-desc">
+                完全不同的能力域、安全要求高、Tool 差异大。Skill、Prompt、Workspace 全部独立。
+              </p>
+              <div class="agent-design-flow">
+                <div class="design-centers">
+                  <div class="design-center small">
+                    <div class="design-icon">📰</div>
+                    <div class="design-label">News Agent</div>
+                    <div class="design-session">Session A</div>
+                  </div>
+                  <div class="design-center small">
+                    <div class="design-icon">📄</div>
+                    <div class="design-label">PDF Agent</div>
+                    <div class="design-session">Session B</div>
+                  </div>
+                  <div class="design-center small">
+                    <div class="design-icon">📊</div>
+                    <div class="design-label">PPT Agent</div>
+                    <div class="design-session">Session C</div>
+                  </div>
+                </div>
+              </div>
+              <div class="design-features">
+                <div class="feature-item">
+                  <span class="feature-icon">✅</span>
+                  <span><strong>Skill 独立</strong>（各自配置）</span>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">✅</span>
+                  <span><strong>Prompt 独立</strong>（SOUL.md 隔离）</span>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">✅</span>
+                  <span><strong>Workspace 隔离</strong>（/workspace/news/ 等）</span>
+                </div>
+              </div>
+              <div class="design-pros">
+                <h5>优势</h5>
+                <p>隔离强、更安全、更稳定、防交叉污染</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Workspace 对比 -->
+          <div class="comparison-card">
+            <h4>📊 Workspace 共享 vs 隔离</h4>
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>维度</th>
+                  <th>🟢 共享 Workspace</th>
+                  <th>🔵 隔离 Workspace</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>文件系统</td>
+                  <td>共用一个目录</td>
+                  <td>各 Agent 独立目录（/workspace/news/ 等）</td>
+                </tr>
+                <tr>
+                  <td>Session Context</td>
+                  <td>各自独立</td>
+                  <td>各自独立</td>
+                </tr>
+                <tr>
+                  <td>适用场景</td>
+                  <td>同一领域、任务不同（70% 场景）</td>
+                  <td>高安全、权限隔离、防污染</td>
+                </tr>
+                <tr>
+                  <td>类比</td>
+                  <td>所有人在同一项目目录，各自有"工作记录"</td>
+                  <td>每人一间独立办公室，文件互不访问</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="analogy-card">
+            <div class="analogy-icon">💡</div>
+            <div class="analogy-content">
+              <h4>选择建议</h4>
+              <p>
+                <strong>默认选方案 A</strong>（一个 Agent + 多个 Session），因为大多数场景是同一领域的不同任务，共享工具和技能更经济。<br>
+                <strong>安全或差异大时选方案 B</strong>（多个 Agent），比如新闻采集和财务分析需要完全不同的权限和工具链。
+              </p>
+            </div>
+          </div>
+        </div>
+
+      <!-- Delivery -->
         <div class="concept-card">
           <div class="concept-header">
             <span class="concept-icon">📤</span>
@@ -1039,6 +1329,348 @@
 
       <!-- 场景实战内容 -->
       <template v-if="activeCategory === 'scenarios'">
+        <!-- 场景 00: 环境准备 -->
+        <div v-show="activeScenario === 'scenario00'" class="tab-panel">
+          <div class="scenario-content">
+            <div class="scenario-header">
+              <span class="scenario-badge">SCENE 00</span>
+              <h3>环境准备 —— 从零搭建 OpenClaw</h3>
+            </div>
+            <p class="scenario-intro">OpenClaw 支持多种部署方式，覆盖 macOS、Linux、WSL 和 Docker。模型 API 可接入国内外主流大模型厂商。</p>
+
+            <!-- 第一部分：部署方式 -->
+            <div class="scenario-section">
+              <h4>🖥️ 部署方式</h4>
+
+              <div class="deploy-cards">
+                <div class="deploy-card">
+                  <div class="deploy-icon">🍎</div>
+                  <h5>macOS 本地部署</h5>
+                  <p>适用于 Apple Silicon (M1/M2/M3/M4) 或 Intel Mac</p>
+                  <div class="deploy-steps">
+                    <div class="step"><span class="step-num">1</span><span>安装 Node.js 22+</span></div>
+                    <div class="step"><span class="step-num">2</span><span>一行命令安装</span></div>
+                    <div class="step"><span class="step-num">3</span><span>引导式配置</span></div>
+                  </div>
+                  <div class="code-block">
+                    <div class="code-header"><span class="code-title">安装命令</span><span class="code-lang">Shell</span></div>
+                    <pre><code># 一键安装（推荐）
+curl -sSL https://openclaw.ai/install | sh
+
+# 或 npm 安装
+npm install -g openclaw@latest
+
+# 启动并进入引导配置
+openclaw</code></pre>
+                  </div>
+                </div>
+
+                <div class="deploy-card">
+                  <div class="deploy-icon">🐧</div>
+                  <h5>Linux 本地部署</h5>
+                  <p>适用于 Ubuntu / Debian / CentOS / Arch 等主流发行版</p>
+                  <div class="deploy-steps">
+                    <div class="step"><span class="step-num">1</span><span>安装 Node.js 22+</span></div>
+                    <div class="step"><span class="step-num">2</span><span>一行命令安装</span></div>
+                    <div class="step"><span class="step-num">3</span><span>配置防火墙与端口</span></div>
+                  </div>
+                  <div class="code-block">
+                    <div class="code-header"><span class="code-title">安装命令</span><span class="code-lang">Shell</span></div>
+                    <pre><code># 一键安装
+curl -sSL https://openclaw.ai/install | sh
+
+# 或 npm 安装
+npm install -g openclaw@latest
+
+# 启动
+openclaw</code></pre>
+                  </div>
+                </div>
+
+                <div class="deploy-card">
+                  <div class="deploy-icon">🪟</div>
+                  <h5>Windows WSL2 部署</h5>
+                  <p>通过 WSL2 在 Windows 10/11 上运行</p>
+                  <div class="deploy-steps">
+                    <div class="step"><span class="step-num">1</span><span>安装 WSL2 (Ubuntu)</span></div>
+                    <div class="step"><span class="step-num">2</span><span>在 WSL2 内安装</span></div>
+                    <div class="step"><span class="step-num">3</span><span>浏览器访问 Web UI</span></div>
+                  </div>
+                  <div class="code-block">
+                    <div class="code-header"><span class="code-title">安装命令</span><span class="code-lang">PowerShell</span></div>
+                    <pre><code># 安装 WSL2
+wsl --install
+
+# 进入 WSL2 Ubuntu 后安装 OpenClaw
+curl -sSL https://openclaw.ai/install | sh
+
+# 启动
+openclaw</code></pre>
+                  </div>
+                </div>
+
+                <div class="deploy-card">
+                  <div class="deploy-icon">🐳</div>
+                  <h5>Docker 部署</h5>
+                  <p>适用于服务器、云服务器或任何有 Docker 的环境</p>
+                  <div class="deploy-steps">
+                    <div class="step"><span class="step-num">1</span><span>拉取镜像</span></div>
+                    <div class="step"><span class="step-num">2</span><span>配置 docker-compose</span></div>
+                    <div class="step"><span class="step-num">3</span><span>启动并访问 18789 端口</span></div>
+                  </div>
+                  <div class="code-block">
+                    <div class="code-header"><span class="code-title">Docker 命令</span><span class="code-lang">Shell</span></div>
+                    <pre><code># 克隆仓库并运行
+git clone https://github.com/openclaw/openclaw.git
+cd openclaw
+./docker-setup.sh
+docker compose up -d
+
+# 或 Docker Hub 镜像
+docker pull alpine/openclaw:latest</code></pre>
+                  </div>
+                </div>
+
+                <div class="deploy-card">
+                  <div class="deploy-icon">☁️</div>
+                  <h5>国内云厂商部署</h5>
+                  <p>阿里云、腾讯云、华为云等云服务器</p>
+                  <div class="deploy-steps">
+                    <div class="step"><span class="step-num">1</span><span>购买云服务器（建议 2C4G+）</span></div>
+                    <div class="step"><span class="step-num">2</span><span>SSH 登录后安装</span></div>
+                    <div class="step"><span class="step-num">3</span><span>配置安全组开放 18789 端口</span></div>
+                  </div>
+                  <div class="code-block">
+                    <div class="code-header"><span class="code-title">推荐配置</span></div>
+                    <pre><code># 最低配置
+CPU: 2 vCPU
+内存: 4GB+ (推荐 8GB)
+存储: 40GB SSD
+系统: Ubuntu 22.04 LTS</code></pre>
+                  </div>
+                </div>
+
+                <div class="deploy-card">
+                  <div class="deploy-icon">⚙️</div>
+                  <h5>系统要求</h5>
+                  <p>OpenClaw 的资源需求很低，轻装上阵</p>
+                  <table class="req-table">
+                    <thead>
+                      <tr><th>项目</th><th>最低</th><th>推荐</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Node.js</td><td>22.14+</td><td>Node.js 24</td></tr>
+                      <tr><td>CPU</td><td>1-2 vCPU</td><td>M4 / i5-13400 / R5 7600</td></tr>
+                      <tr><td>内存</td><td>2 GB</td><td>16-32 GB</td></tr>
+                      <tr><td>存储</td><td>20 GB</td><td>40 GB SSD</td></tr>
+                      <tr><td>端口</td><td>18789</td><td>仅本地 / 内网</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="key-insight" style="margin-top: 16px;">
+                <div class="insight-icon">🔒</div>
+                <div class="insight-content">
+                  <h4>安全提醒</h4>
+                  <ul>
+                    <li>不要将 18789 端口直接暴露到公网</li>
+                    <li>建议使用 Tailscale、反向代理（nginx + SSL）进行远程访问</li>
+                    <li>配置防火墙，仅允许信任的 IP 访问</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第二部分：模型 API -->
+            <div class="scenario-section">
+              <h4>🤖 模型 API 接入</h4>
+              <p class="section-intro">OpenClaw 兼容 OpenAI API 格式，可接入国内外主流大模型。配置 API Key 即可使用。</p>
+
+              <h5 style="margin: 20px 0 12px; color: #1e40af;">国际厂商</h5>
+              <div class="provider-grid">
+                <div class="provider-card">
+                  <div class="provider-icon">🟢</div>
+                  <div class="provider-info">
+                    <h6>OpenAI</h6>
+                    <p>GPT-5.5 · GPT-5.4 · o3-pro</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🟣</div>
+                  <div class="provider-info">
+                    <h6>Anthropic</h6>
+                    <p>Opus 4 · Sonnet 4 · Haiku 4.5</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🔵</div>
+                  <div class="provider-info">
+                    <h6>Google Gemini</h6>
+                    <p>Gemini 3.1 Pro · Gemini 3.1 Flash Lite · Gemini 3</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🟠</div>
+                  <div class="provider-info">
+                    <h6>Meta Llama</h6>
+                    <p>Llama 4 Maverick · Llama 4 Scout</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">⚫</div>
+                  <div class="provider-info">
+                    <h6>xAI</h6>
+                    <p>Grok 4.20 · Grok 4 Fast</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🔷</div>
+                  <div class="provider-info">
+                    <h6>Mistral</h6>
+                    <p>Large 3 · Ministral 3 · Small 4</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🟤</div>
+                  <div class="provider-info">
+                    <h6>Cohere</h6>
+                    <p>Command R+ · Command R · Command</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">⚡</div>
+                  <div class="provider-info">
+                    <h6>Groq</h6>
+                    <p>超高速推理，支持 Llama / Mixtral 等开源模型</p>
+                  </div>
+                </div>
+              </div>
+
+              <h5 style="margin: 20px 0 12px; color: #dc2626;">国内厂商</h5>
+              <div class="provider-grid">
+                <div class="provider-card">
+                  <div class="provider-icon">🔶</div>
+                  <div class="provider-info">
+                    <h6>阿里通义千问 / DashScope</h6>
+                    <p>Qwen3.6-Flash · Qwen3.5-Plus · Qwen3-Max-Thinking</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🔥</div>
+                  <div class="provider-info">
+                    <h6>DeepSeek / 深度求索</h6>
+                    <p>DeepSeek V4 · DeepSeek V4-Pro-Max</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🔴</div>
+                  <div class="provider-info">
+                    <h6>百度文心一言 / ERNIE</h6>
+                    <p>ERNIE 5.0 · ERNIE 4.5 · ERNIE X1.1</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🔷</div>
+                  <div class="provider-info">
+                    <h6>智谱清言 / Zhipu AI</h6>
+                    <p>GLM-5.1 · GLM-5</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🌙</div>
+                  <div class="provider-info">
+                    <h6>月之暗面 / Moonshot</h6>
+                    <p>Kimi K2.6 · Kimi K2.5</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">⭐</div>
+                  <div class="provider-info">
+                    <h6>阶跃星辰 / StepFun</h6>
+                    <p>Step 3.5 Flash · Step Audio R1.1</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🐧</div>
+                  <div class="provider-info">
+                    <h6>腾讯混元 / Hunyuan</h6>
+                    <p>Hunyuan 3.0 · Hunyuan 2.0</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🔥</div>
+                  <div class="provider-info">
+                    <h6>字节跳动 / 火山引擎</h6>
+                    <p>Doubao 2.0 · Seedance 2.0 · Seedream 5.0</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🕷️</div>
+                  <div class="provider-info">
+                    <h6>MiniMax</h6>
+                    <p>M2.7 · M2.5</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">💊</div>
+                  <div class="provider-info">
+                    <h6>零一万物 / 01.ai</h6>
+                    <p>Yi-Large · Yi-Medium · Yi-Spark</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🌊</div>
+                  <div class="provider-info">
+                    <h6>百川智能 / Baichuan</h6>
+                    <p>Baichuan 4</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">💎</div>
+                  <div class="provider-info">
+                    <h6>讯飞星火 / iFlytek Spark</h6>
+                    <p>Spark X2 · Spark X1</p>
+                  </div>
+                </div>
+                <div class="provider-card">
+                  <div class="provider-icon">🌌</div>
+                  <div class="provider-info">
+                    <h6>昆仑万维 / Skywork</h6>
+                    <p>Skywork 系列模型</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="code-block" style="margin-top: 16px;">
+                <div class="code-header">
+                  <span class="code-title">通用 API 配置（兼容 OpenAI 格式）</span>
+                  <span class="code-lang">JSON</span>
+                </div>
+                <pre><code>{
+  "provider": "openai-compatible",
+  "api_url": "https://api.openai.com/v1",
+  "api_key": "sk-...",
+  "model": "gpt-5.5"
+}</code></pre>
+              </div>
+
+              <div class="key-insight" style="margin-top: 16px;">
+                <div class="insight-icon">💡</div>
+                <div class="insight-content">
+                  <h4>接入提示</h4>
+                  <ul>
+                    <li>所有厂商 API 均兼容 OpenAI 格式，只需替换 <code>api_url</code> 和 <code>api_key</code></li>
+                    <li>国内厂商无需科学上网，API 响应更快；国际厂商需要网络代理</li>
+                    <li>建议配置多厂商 fallback，避免单点故障</li>
+                    <li>DeepSeek 性价比极高，适合大批量调用场景</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 场景 01 -->
         <div v-show="activeScenario === 'scenario01'" class="tab-panel">
           <div class="scenario-content">
@@ -1467,6 +2099,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import MermaidChart from '../components/MermaidChart.vue'
 import hljs from 'highlight.js/lib/core'
 import python from 'highlight.js/lib/languages/python'
@@ -1475,11 +2108,14 @@ import json from 'highlight.js/lib/languages/json'
 hljs.registerLanguage('python', python)
 hljs.registerLanguage('json', json)
 
+const router = useRouter()
+
 const activeCategory = ref('architecture')
 const activeTab = ref('execution')
-const activeScenario = ref('scenario01')
+const activeScenario = ref('scenario00')
 
 const scenarios = [
+  { id: 'scenario00', name: '环境准备' },
   { id: 'scenario01', name: '个人情感陪伴' },
   { id: 'scenario02', name: '资讯采集推送' },
   { id: 'scenario03', name: '日报编辑助手' },
@@ -1499,159 +2135,32 @@ const layers = [
   { id: 'infrastructure', level: 'Level 6', name: 'Infrastructure', desc: '基础设施', icon: '🏗️' }
 ]
 
-const promptLayers = [
-  { name: 'SOUL.md', desc: '人格定义', detail: 'Agent 的核心价值观和性格' },
-  { name: 'USER.md', desc: '用户信息', detail: '当前用户身份和偏好设置' },
-  { name: 'IDENTITY.md', desc: '身份标识', detail: 'Agent 的角色和职责定义' },
-  { name: 'AGENTS.md', desc: '工作区规则', detail: '子代理配置和行为规范' },
-  { name: 'TOOLS.md', desc: '工具配置', detail: '可用工具的描述和参数' },
-  { name: 'SAFETY.md', desc: '安全规则', detail: '安全边界和限制条件' },
-  { name: 'MEMORY.md', desc: '长期记忆', detail: '历史交互和经验总结' },
-  { name: 'HEARTBEAT.md', desc: '心跳任务', detail: '定时任务的触发条件' }
-]
-
 // 代码示例 - 来自 claw0 教程
-const agentLoopCode = `def agent_loop() -> None:
-    messages: list[dict] = []
-
-    while True:
-        user_input = input(colored_prompt()).strip()
-        if not user_input or user_input.lower() in ("quit", "exit"):
-            break
-
-        messages.append({"role": "user", "content": user_input})
-
-        try:
-            response = client.messages.create(
-                model=MODEL_ID,
-                max_tokens=8096,
-                system=SYSTEM_PROMPT,
-                messages=messages,
-            )
-        except Exception as exc:
-            print(f"API Error: {exc}")
-            messages.pop()
-            continue
-
-        if response.stop_reason == "end_turn":
-            for block in response.content:
-                if hasattr(block, "text"):
-                    print_assistant(block.text)
-            messages.append({"role": "assistant", "content": response.content})
-        elif response.stop_reason == "tool_use":
-            # 处理工具调用...
-            pass`
-
-const toolUseCode = `TOOLS = [
-    {
-        "name": "bash",
-        "description": "Run a shell command and return its output.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "command": {"type": "string", "description": "The shell command."},
-                "timeout": {"type": "integer", "description": "Timeout in seconds."},
-            },
-            "required": ["command"],
-        },
-    },
-    # ... read_file, write_file, edit_file (相同模式)
-]
-
-TOOL_HANDLERS: dict[str, Any] = {
-    "bash": tool_bash,
-    "read_file": tool_read_file,
-    "write_file": tool_write_file,
-    "edit_file": tool_edit_file,
-}
-
-def process_tool_call(tool_name: str, tool_input: dict) -> str:
-    handler = TOOL_HANDLERS.get(tool_name)
-    if handler is None:
-        return f"Unknown tool: {tool_name}"
-    try:
-        return handler(**tool_input)
-    except Exception as exc:
-        return str(exc)  # 错误作为字符串返回`
-
 const sessionCode = `# sessions/user_123.jsonl
-{"role": "user", "content": "你好", "timestamp": "2024-01-01T10:00:00Z"}
-{"role": "assistant", "content": [{"type": "text", "text": "你好！有什么可以帮你的？"}]}
-{"role": "user", "content": "帮我写个函数", "timestamp": "2024-01-01T10:01:00Z"}
+{"type": "user", "content": "帮我检查一下最近的邮件", "timestamp": "2024-01-01T10:00:00Z"}
+{"type": "assistant", "content": [{"type": "text", "text": "好的，我来帮你检查邮件。"}], "tool_use": {"id": "tool_001", "name": "read_emails"}}
+{"type": "tool_result", "tool_use_id": "tool_001", "content": "[{\"from\": 'boss@company.com', 'subject': '项目进度'}]"}
+{"type": "assistant", "content": [{"type": "text", "text": "你有1封未读邮件，来自老板，主题是项目进度。"}]}
+{"type": "user", "content": "帮我总结一下内容", "timestamp": "2024-01-01T10:02:00Z"}`
 
-# 读取重放
-with open("sessions/user_123.jsonl") as f:
-    for line in f:
-        msg = json.loads(line)
-        messages.append(msg)`
-
-const promptAssemblyCode = `def assemble_prompt() -> str:
-    parts = []
-
-    # 按顺序叠加每一层
-    parts.append(Path("workspace/SOUL.md").read_text())
-    parts.append(Path("workspace/IDENTITY.md").read_text())
-    parts.append(Path("workspace/TOOLS.md").read_text())
-    parts.append(Path("workspace/USER.md").read_text())
-    parts.append(Path("workspace/AGENTS.md").read_text())
-    parts.append(retrieve_memory())  # 混合记忆检索
-    parts.append(Path("workspace/HEARTBEAT.md").read_text())
-    parts.append(Path("workspace/BOOTSTRAP.md").read_text())
-
-    return "\\n\\n".join(parts)`
-
-const heartbeatCode = `import threading
-import croniter
-from datetime import datetime
-
-def heartbeat_loop():
-    while True:
-        now = datetime.now()
-        if croniter.croniter(CRON_EXPRESSION, now).is_now():
-            # 使用灵魂/记忆构建提示词
-            prompt = build_prompt_from_soul_and_memory()
-
-            # 和用户消息共用同一管线
-            agent.process(prompt)
-
-        time.sleep(60)  # 每分钟检查一次`
-
-const highlightedAgentLoop = computed(() => hljs.highlight(agentLoopCode, { language: 'python' }).value)
-const highlightedToolUse = computed(() => hljs.highlight(toolUseCode, { language: 'python' }).value)
 const highlightedSession = computed(() => hljs.highlight(sessionCode, { language: 'json' }).value)
-const highlightedPromptAssembly = computed(() => hljs.highlight(promptAssemblyCode, { language: 'python' }).value)
-const highlightedHeartbeat = computed(() => hljs.highlight(heartbeatCode, { language: 'python' }).value)
+
+// SubAgent diagram
+const subagentDiagram = `flowchart TD
+    Main[主 Agent] -->|拆分派发| T1[SubTask A]
+    Main -->|拆分派发| T2[SubTask B]
+    Main -->|拆分派发| T3[SubTask C]
+    T1 --> A1[SubAgent A]
+    T2 --> A2[SubAgent B]
+    T3 --> A3[SubAgent C]
+    A1 --> S1[独立 Session A]
+    A2 --> S2[独立 Session B]
+    A3 --> S3[独立 Session C]
+    A1 -->|回传结果| R[主 Agent 汇总]
+    A2 -->|回传结果| R
+    A3 -->|回传结果| R`
 
 // Mermaid 图表定义
-const agentLoopDiagram = `flowchart TD
-    A[User Input] --> B[messages append]
-    B --> C[client.messages.create]
-    C --> D{stop_reason?}
-    D -->|"end_turn"| E[Print Output]
-    D -->|"tool_use"| F[Execute Tool]
-    F --> G[tool_result]
-    G --> B
-    E --> H[Continue Loop]
-    H --> B`
-
-const toolUseDiagram = `flowchart TD
-    A[messages] --> B[LLM API with TOOLS]
-    B --> C{stop_reason?}
-    C -->|"tool_use"| D[TOOL_HANDLERS name input]
-    D --> E[tool_result]
-    E --> F[messages append tool_result]
-    F --> B
-    C -->|"end_turn"| G[End]`
-
-const heartbeatDiagram = `flowchart TD
-    A[Main Loop User Messages] --> B[Heartbeat Scheduler]
-    B --> C{should_run?}
-    C -->|No| D[Sleep 60s]
-    C -->|Yes| E[Build Prompt from Soul + Memory]
-    E --> F[agent.process prompt]
-    F --> B
-    D --> B`
-
 const deliveryDiagram = `flowchart TD
     A[Agent Reply] --> B[chunk_message split by platform]
     B --> C[DeliveryQueue.enqueue]
@@ -1700,43 +2209,7 @@ const concurrencyDiagram = `flowchart TD
     J --> K[active_count--]
     K --> L[_pump next if active < max]`
 
-const routingDiagram = `flowchart TD
-    A[Inbound Message] --> B[Gateway]
-    B --> C[BindingTable.resolve]
-    C --> D{Tier 1 peer_id?}
-    D -->|Match| E[Return agent_id]
-    D -->|No| F{Tier 2 guild_id?}
-    F -->|Match| E
-    F -->|No| G{Tier 3 account_id?}
-    G -->|Match| E
-    G -->|No| H{Tier 4 channel?}
-    H -->|Match| E
-    H -->|No| I{Tier 5 default?}
-    I -->|Match| E
-    I -->|No| J[No binding found]`
-
 // 代码示例 - 基础设施层
-const routingCode = `@dataclass
-class Binding:
-    agent_id: str
-    tier: int           # 1-5, 越小越具体
-    match_key: str      # "peer_id" | "guild_id" | "account_id" | "channel" | "default"
-    match_value: str    # e.g. "telegram:12345", "discord", "*"
-    priority: int = 0   # 同一 tier 内, 越高越优先
-
-class BindingTable:
-    def resolve(self, channel="", account_id="",
-                guild_id="", peer_id="") -> tuple[str | None, Binding | None]:
-        for b in self._bindings:
-            if b.tier == 1 and b.match_key == "peer_id":
-                if ":" in b.match_value:
-                    if b.match_value == f"{channel}:{peer_id}":
-                        return b.agent_id, b
-                elif b.match_value == peer_id:
-                    return b.agent_id, b
-            # ... 其他 tier 类似
-        return None, None`
-
 const inboundMessageCode = `@dataclass
 class InboundMessage:
     text: str
@@ -1806,7 +2279,6 @@ const laneQueueCode = `class LaneQueue:
                 self._pump()
             self._condition.notify_all()`
 
-const highlightedRouting = computed(() => hljs.highlight(routingCode, { language: 'python' }).value)
 const highlightedInboundMessage = computed(() => hljs.highlight(inboundMessageCode, { language: 'python' }).value)
 const highlightedDelivery = computed(() => hljs.highlight(deliveryCode, { language: 'python' }).value)
 const highlightedProfileManager = computed(() => hljs.highlight(profileManagerCode, { language: 'python' }).value)
@@ -2213,30 +2685,6 @@ const highlightedLaneQueue = computed(() => hljs.highlight(laneQueueCode, { lang
 
 .concept-list li strong {
   color: #1f2937;
-}
-
-/* Agent Architecture */
-.agent-architecture {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.agent-section {
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-}
-
-.agent-section .section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e40af;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
 }
 
 /* Code Block */
@@ -3224,6 +3672,103 @@ const highlightedLaneQueue = computed(() => hljs.highlight(laneQueueCode, { lang
   line-height: 1.5;
 }
 
+/* Agent Design Patterns */
+.agent-design-flow {
+  padding: 20px 0;
+  margin: 16px 0;
+}
+.design-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 14px;
+  border: 2px solid #f59e0b;
+  margin-bottom: 12px;
+}
+.design-center.small {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 10px;
+}
+.design-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+.design-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.design-session {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.design-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 32px;
+  border-left: 2px dashed #cbd5e1;
+  padding-left: 16px;
+}
+.design-centers {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.design-branch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+.branch-icon {
+  font-size: 18px;
+}
+.design-features {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #475569;
+}
+.feature-icon {
+  font-size: 14px;
+}
+.design-pros {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-radius: 8px;
+  border: 1px solid #10b981;
+}
+.design-pros h5 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0 0 4px;
+}
+.design-pros p {
+  font-size: 11px;
+  color: #047857;
+  margin: 0;
+}
+
 .lanes-detail {
   margin: 20px 0;
 }
@@ -3269,10 +3814,511 @@ const highlightedLaneQueue = computed(() => hljs.highlight(laneQueueCode, { lang
   margin: 8px 0 0 0;
 }
 
+/* Dual Card Layout (Heartbeat vs Cron) */
+.dual-card {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.spec-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.spec-item {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.spec-label {
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.spec-value {
+  color: #6b7280;
+}
+
+.example-list {
+  margin-top: 12px;
+}
+
+.example-list h5 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.example-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+.example-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Comparison Table */
+.comparison-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.comparison-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+}
+
+.comparison-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.comparison-table td {
+  color: #4b5563;
+}
+
+.comparison-table tr:nth-child(even) td {
+  background: #f9fafb;
+}
+
+/* Analogy Card */
+.analogy-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-radius: 12px;
+  border: 1px solid #10b981;
+  margin-bottom: 20px;
+}
+
+.analogy-card .analogy-icon {
+  font-size: 24px;
+}
+
+.analogy-card .analogy-content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0 0 8px 0;
+}
+
+.analogy-card .analogy-content p {
+  font-size: 13px;
+  color: #047857;
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* SubAgent Core Traits */
+.subagent-core {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 20px 0;
+}
+
+.core-trait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+}
+
+.core-trait .trait-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.core-trait .trait-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3730a3;
+}
+
+/* SubAgent Mechanism Cards */
+.subagent-mechanism {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.mechanism-card {
+  padding: 18px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.mechanism-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mechanism-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mechanism-header h5 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.mechanism-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+
+/* Session Trait Description */
+.session-trait-desc {
+  padding: 0 20px;
+  margin-top: 12px;
+}
+.session-trait-desc p {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.8;
+  margin: 6px 0;
+}
+
+/* Context Guard Steps */
+.context-guard-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+.guard-step {
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border-left: 4px solid #4f46e5;
+}
+.guard-step.fail {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+.guard-step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.guard-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  padding: 0 6px;
+}
+.guard-badge.attempt-0 { background: #4f46e5; }
+.guard-badge.attempt-1 { background: #f59e0b; }
+.guard-badge.attempt-2 { background: #ef4444; }
+.guard-badge.attempt-fail { background: #dc2626; }
+.guard-step-header h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+.guard-step-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Compaction Diagram */
+.compaction-diagram {
+  margin-top: 20px;
+}
+.compaction-diagram h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 12px;
+}
+.compaction-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.compact-region {
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.compact-region .region-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.compact-region .region-detail {
+  font-size: 12px;
+  color: #64748b;
+  font-family: 'SF Mono', monospace;
+}
+.compact-region.compressed {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+}
+.compact-region.compressed .region-label { color: #92400e; }
+.compact-region.middle {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+.compact-region.middle .region-label { color: #334155; }
+.compact-region.keep {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid #22c55e;
+}
+.compact-region.keep .region-label { color: #166534; }
+
+/* Deploy Cards */
+.deploy-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.deploy-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.deploy-card .deploy-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.deploy-card h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.deploy-card > p {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+}
+
+.deploy-steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.deploy-steps .step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.deploy-steps .step-num {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #7c3aed;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.req-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.req-table th,
+.req-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+}
+
+.req-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.req-table td {
+  color: #4b5563;
+}
+
+/* Provider Cards */
+.provider-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.provider-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.provider-card .provider-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.provider-card .provider-info h6 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.provider-card .provider-info p {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Cross Link Card */
+.cross-link-card {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 16px;
+  border: 2px solid #3b82f6;
+  align-items: flex-start;
+}
+
+.cross-link-card .cross-link-icon {
+  font-size: 32px;
+}
+
+.cross-link-card .cross-link-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 8px 0;
+}
+
+.cross-link-card .cross-link-content p {
+  font-size: 14px;
+  color: #1e3a5f;
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+}
+
+.cross-link-button {
+  display: inline-block;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cross-link-button:hover {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
 /* 响应式 */
 @media (max-width: 1024px) {
   .tools-grid,
-  .infra-grid {
+  .infra-grid,
+  .provider-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deploy-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dual-card {
     grid-template-columns: 1fr;
   }
 }
@@ -3280,6 +4326,10 @@ const highlightedLaneQueue = computed(() => hljs.highlight(laneQueueCode, { lang
 @media (max-width: 768px) {
   .page-title {
     font-size: 28px;
+  }
+
+  .deploy-cards {
+    grid-template-columns: 1fr;
   }
 
   .layer-tabs {
@@ -3290,12 +4340,52 @@ const highlightedLaneQueue = computed(() => hljs.highlight(laneQueueCode, { lang
     min-width: auto;
   }
 
+  .spec-list {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-table {
+    font-size: 12px;
+  }
+
   .sessions-flow {
     flex-direction: column;
   }
 
   .sessions-flow .flow-arrow {
     transform: rotate(90deg);
+  }
+
+  .subagent-core {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .subagent-mechanism {
+    gap: 12px;
+  }
+
+  .context-guard-steps {
+    gap: 10px;
+  }
+
+  .compact-region {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .session-trait-desc {
+    padding: 0 12px;
+  }
+
+  .design-centers {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .design-branches {
+    margin-left: 16px;
   }
 }
 </style>

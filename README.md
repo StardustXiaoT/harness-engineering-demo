@@ -4,7 +4,28 @@ Harness Engineering 的架构演进 - 交互式演示页面
 
 ## 更新内容
 
-### v1.4.0 (2026-04-27)
+### v1.5.0 (2026-04-27)
+
+#### 跨页面导航
+
+- Openclaw Execution 和 Capability 标签页新增跳转卡片，一键直达 Claude Code 对应模块
+- Claude Code 页面支持 URL query 参数，接收跨页面 tab 跳转（如 `/claude-code?tab=execution`）
+
+#### OpenClaw 内容重构
+
+- **Context 标签**：重写 Session 模块，新增存储对话 / 还原上下文 / 控制大小核心概念、Context Guard 4 级重试机制、Compaction 50/30/20 分区压缩可视化
+- **Autonomy 标签**：新增 SubAgent 内容（分任务 + 并行执行 + 隔离上下文），含 Mermaid 流程图与 3 大机制卡片
+- **Infrastructure 标签**：扩展 Channel 部分，新增 Agent 设计模式对比（方案A：一个 Agent + 多个 Session vs 方案B：多个 Agent + 多个 Session）
+- **Skills 市场**：新增 find-skills 技能（查找 ClawHub 上的 Skills）
+- **LLM 厂商**：修正 DeepSeek 分类（从国际归入国内），全量更新 21 个厂商模型名称至 2026 最新版本
+
+#### Claude Code 内容优化
+
+- Skills 渐进式披露更新为"折叠式说明书"比喻，3 层架构展示（标题 → 步骤 → 细节）
+
+---
+
+### v1.4.0 (2026-04-24)
 
 #### OpenClaw 页面 (/openclaw)
 
@@ -197,6 +218,7 @@ npm run dev
 | /harness | Harness | 理解 Harness 的组成和作用 |
 | /claude-code | Claude Code | Harness Engineering 5 层架构详解 |
 | /openclaw | OpenClaw | OpenClaw 6 层架构 + 场景实战 |
+| /llm-providers | LLM 供应商 | 国际与国内主流 LLM API 供应商大全 |
 
 ## 项目结构
 
@@ -216,7 +238,8 @@ harness-demo/
 │   │   ├── AgentView.vue         # Agent 页面
 │   │   ├── HarnessView.vue       # Harness 页面
 │   │   ├── ClaudeCodeView.vue    # Claude Code 页面（5 层架构）
-│   │   └── OpenclawView.vue     # OpenClaw 页面（6 层架构 + 场景实战）
+│   │   ├── OpenclawView.vue     # OpenClaw 页面（6 层架构 + 场景实战）
+│   │   └── LLMProviderView.vue  # LLM 供应商大全（国际 + 国内）
 │   ├── App.vue                  # 根组件
 │   ├── main.js                  # 入口文件
 │   └── style.css                # 全局样式

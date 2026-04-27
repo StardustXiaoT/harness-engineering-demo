@@ -5,6 +5,7 @@ import AgentView from '../views/AgentView.vue'
 import HarnessView from '../views/HarnessView.vue'
 import ClaudeCodeView from '../views/ClaudeCodeView.vue'
 import OpenclawView from '../views/OpenclawView.vue'
+import LLMProviderView from '../views/LLMProviderView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,6 +42,11 @@ const router = createRouter({
       path: '/openclaw',
       name: 'openclaw',
       component: OpenclawView
+    },
+    {
+      path: '/llm-providers',
+      name: 'llm-providers',
+      component: LLMProviderView
     }
   ]
 })
