@@ -276,11 +276,59 @@
 
         <div class="practices">
           <h4>关键实践</h4>
-          <ul>
-            <li><code>AGENTS.md</code> 作为「目录」而非「百科全书」，避免上下文污染</li>
-            <li>每步操作自动运行测试+lint，失败则反馈给 Agent 重试</li>
-            <li>用 Git 作为 Agent 的「原生记忆」，小粒度提交便于追溯</li>
-          </ul>
+          <div class="practice-card">
+            <div class="practice-header">
+              <span class="practice-num">1</span>
+              <h5>不要把知识塞进去，而是给模型"查找路径"</h5>
+            </div>
+            <div class="practice-content">
+              <div class="code-example">
+<pre>AGENTS.md
+- Coding rules → /docs/coding.md
+- Test strategy → /tests/README.md
+- API spec → /docs/api.md</pre>
+              </div>
+              <p class="practice-desc">模型在需要时 <strong>👉 决定去读哪个文件</strong>，而不是把所有知识都塞进上下文</p>
+            </div>
+          </div>
+
+          <div class="practice-card">
+            <div class="practice-header">
+              <span class="practice-num">2</span>
+              <h5>把"判断对不对"这件事，从模型手里拿走</h5>
+            </div>
+            <div class="practice-content">
+              <div class="flow-example">
+                <span class="flow-step">AI 写代码</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">系统跑 test/lint</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">失败则反馈</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">AI 再改</span>
+              </div>
+              <p class="practice-desc"><strong>👉 用真实环境做反馈闭环</strong></p>
+              <p class="practice-change"><strong>本质变化：</strong>从"让模型自我评估" 👉 变成"用真实环境做反馈闭环"</p>
+            </div>
+          </div>
+
+          <div class="practice-card">
+            <div class="practice-header">
+              <span class="practice-num">3</span>
+              <h5>不让模型"记"，而是让系统"存"</h5>
+            </div>
+            <div class="practice-content">
+              <div class="git-example">
+                <p>用 Git 作为 Agent 的「原生记忆」：</p>
+                <ul>
+                  <li>每次修改 = <strong>commit</strong></li>
+                  <li>每个决策 = <strong>diff</strong></li>
+                  <li>所有历史 = <strong>可回溯</strong></li>
+                </ul>
+              </div>
+              <p class="practice-change"><strong>本质变化：</strong>从"让模型记住发生了什么" 👉 变成"让系统记录发生了什么"</p>
+            </div>
+          </div>
         </div>
 
         <div class="three-elements">
@@ -972,6 +1020,123 @@ const tabs = [
 
 .practices li:last-child {
   border-bottom: none;
+}
+
+.practice-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.practice-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.practice-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.practice-header h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.practice-content {
+  padding-left: 40px;
+}
+
+.code-example {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.code-example pre {
+  margin: 0;
+  font-family: monospace;
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+.flow-example {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.flow-example .flow-step {
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.flow-example .flow-arrow {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.practice-desc {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.practice-change {
+  font-size: 12px;
+  color: #7c3aed;
+  margin: 0;
+  padding: 8px;
+  background: #f5f3ff;
+  border-radius: 6px;
+}
+
+.git-example {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.git-example p {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 0 0 8px 0;
+}
+
+.git-example ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.git-example li {
+  font-size: 12px;
+  color: #4b5563;
+  padding: 4px 0;
 }
 
 .practices code {
