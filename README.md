@@ -4,6 +4,28 @@ Harness Engineering 的架构演进 - 交互式演示页面
 
 ## 更新内容
 
+### v1.6.0 (2026-04-27)
+
+#### 新增愿景页面 (/vision)
+
+- 用真正的 Agent 铺满宇宙
+- 6 个领域示例：庄园管理、农业、酒店运营、医学研究、制造业、教育
+- 核心洞察：循环不变，工具/知识/权限在变，模型泛化一切
+
+#### AI 发展页面优化
+
+- **Harness Engineering 关键实践**扩充为 3 个核心原则：
+  1. 不要把知识塞进去，而是给模型"查找路径"
+  2. 把"判断对不对"这件事，从模型手里拿走
+  3. 不让模型"记"，而是让系统"存"
+- **Context Engineering**增加 Tool Calling 场景案例
+
+#### Agent 页面优化
+
+- 修正训练模型描述：SFT + RLHF
+
+---
+
 ### v1.5.0 (2026-04-27)
 
 #### 跨页面导航
@@ -219,6 +241,7 @@ npm run dev
 | /claude-code | Claude Code | Harness Engineering 5 层架构详解 |
 | /openclaw | OpenClaw | OpenClaw 6 层架构 + 场景实战 |
 | /llm-providers | LLM 供应商 | 国际与国内主流 LLM API 供应商大全 |
+| /vision | 愿景 | 用真正的 Agent 铺满宇宙 |
 
 ## 项目结构
 
@@ -239,7 +262,8 @@ harness-demo/
 │   │   ├── HarnessView.vue       # Harness 页面
 │   │   ├── ClaudeCodeView.vue    # Claude Code 页面（5 层架构）
 │   │   ├── OpenclawView.vue     # OpenClaw 页面（6 层架构 + 场景实战）
-│   │   └── LLMProviderView.vue  # LLM 供应商大全（国际 + 国内）
+│   │   ├── LLMProviderView.vue  # LLM 供应商大全
+│   │   └── VisionView.vue       # 愿景页面
 │   ├── App.vue                  # 根组件
 │   ├── main.js                  # 入口文件
 │   └── style.css                # 全局样式

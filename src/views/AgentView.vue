@@ -134,7 +134,7 @@
             <span class="approach-icon">🧬</span>
             <h3>方式一：训练模型（Training）</h3>
           </div>
-          <p class="approach-desc">通过强化学习、微调、RLHF 或其他基于梯度的方法调整模型权重</p>
+          <p class="approach-desc">通过监督微调（SFT）和基于人类反馈的强化学习（RLHF）等方法，利用梯度优化持续调整模型权重</p>
           <div class="approach-steps">
             <div class="step">
               <span class="step-num">1</span>
